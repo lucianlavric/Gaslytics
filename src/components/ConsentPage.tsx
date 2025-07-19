@@ -3,10 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronRight, AlertCircle } from 'lucide-react';
 import { useConversation } from '../context/ConversationContext';
 
+interface ConsentFormData {
+  consent: boolean;
+  relationship: string;
+  context: string;
+  tags: string[];
+  emotionalTone: string;
+}
+
 const ConsentPage = () => {
   const navigate = useNavigate();
-  const { updateContext } = useConversation();
-  const [formData, setFormData] = useState({
+  const { updateConversationData } = useConversation();
+  const [formData, setFormData] = useState<ConsentFormData>({
     consent: false,
     relationship: '',
     context: '',
@@ -41,7 +49,7 @@ const ConsentPage = () => {
     e.preventDefault();
     if (!formData.consent) return;
     
-    updateContext(formData);
+    updateConversationData(formData);
     navigate('/upload');
   };
 

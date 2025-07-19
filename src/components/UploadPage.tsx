@@ -2,17 +2,20 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, File, CheckCircle, AlertCircle } from 'lucide-react';
 import { useConversation } from '../context/ConversationContext';
+import { uploadVideoFile, createConversation, testConnection, getCurrentUser } from '../lib/supabase';
 
 const UploadPage = () => {
   const navigate = useNavigate();
-  const { updateVideoFile } = useConversation();
+  const { conversationData, updateVideoFile } = useConversation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'processing' | 'complete'>('idle');
+  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'processing' | 'complete' | 'error'>('idle');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const handleDrag = (e: React.DragEvent) => {
+    console.log('🔄 Drag event:', e.type);
     e.preventDefault();
     e.stopPropagation();
     if (e.type === 'dragenter' || e.type === 'dragover') {
@@ -23,71 +26,143 @@ const UploadPage = () => {
   };
 
   const handleDrop = (e: React.DragEvent) => {
+    console.log('📁 File dropped');
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
 
     const files = e.dataTransfer.files;
     if (files && files[0]) {
+      console.log('📄 Dropped file:', {
+        name: files[0].name,
+        size: files[0].size,
+        type: files[0].type
+      });
       handleFileSelection(files[0]);
     }
   };
 
   const handleFileSelection = (file: File) => {
+    console.log('🎯 File selected:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      sizeInMB: (file.size / (1024 * 1024)).toFixed(2)
+    });
+
     const validTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
     if (!validTypes.includes(file.type)) {
-      alert('Please upload a valid video file (MP4, WebM, or MOV)');
+      console.error('❌ Invalid file type:', file.type);
+      setError('Please upload a valid video file (MP4, WebM, or MOV)');
       return;
     }
 
-    if (file.size > 100 * 1024 * 1024) { // 100MB limit
-      alert('File size must be less than 100MB');
+    // Check file size (50MB limit for Supabase free tier)
+    const maxSizeInBytes = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSizeInBytes) {
+      const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(1);
+      console.error('❌ File too large:', file.size, 'bytes');
+      setError(`File size (${fileSizeInMB}MB) exceeds the 50MB limit. Please compress your video or use a smaller file.`);
       return;
     }
 
+    console.log('✅ File validation passed');
     setSelectedFile(file);
+    setError(null); // Clear any previous errors
   };
 
-  const simulateUploadAndProcessing = () => {
-    setUploadState('uploading');
-    setProgress(0);
+  const handleUploadAndProcessing = async () => {
+    if (!selectedFile) {
+      console.error('❌ No file selected');
+      return;
+    }
 
-    // Simulate upload progress
-    const uploadInterval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(uploadInterval);
-          setUploadState('processing');
-          
-          // Simulate processing time
-          setTimeout(() => {
-            setUploadState('complete');
-            updateVideoFile(selectedFile!);
-            
-            // Navigate to results after a brief delay
-            setTimeout(() => {
-              navigate('/results');
-            }, 1500);
-          }, 3000);
-          
-          return 100;
-        }
-        return prev + Math.random() * 15;
+    console.log('🚀 Starting upload and processing...');
+    console.log('📊 Conversation data from context:', conversationData);
+
+    try {
+      setUploadState('uploading');
+      setProgress(0);
+      setError(null);
+
+      // Check/create user session
+      const user = await getCurrentUser();
+      console.log('👤 Current user:', user?.id);
+
+      console.log('📤 Uploading file to Supabase Storage...');
+      // Upload file to Supabase Storage (now handles user authentication internally)
+      const { filePath, fileName } = await uploadVideoFile(selectedFile);
+      console.log('✅ File uploaded successfully:', { filePath, fileName });
+      setProgress(30);
+
+      console.log('💾 Creating conversation record in database...');
+      // Create conversation record in database (now handles user ID internally)
+      const conversationPayload = {
+        fileName: selectedFile.name,
+        filePath: filePath,
+        relationshipType: conversationData.relationship || 'unknown',
+        emotionalState: conversationData.emotionalTone || 'neutral',
+        conversationTags: conversationData.tags || [],
+        fileSize: selectedFile.size,
+        fileType: selectedFile.type,
+        conversationContent: conversationData.context,
+        conversationType: 'video',
+      };
+      
+      console.log('📋 Conversation payload:', conversationPayload);
+      
+      const conversation = await createConversation(conversationPayload);
+      console.log('✅ Conversation created successfully:', conversation);
+
+      setProgress(60);
+      setUploadState('processing');
+
+      // Update context with file and conversation
+      updateVideoFile(selectedFile);
+      console.log('🔄 Updated conversation context');
+      
+      // For now, simulate processing
+      setTimeout(() => {
+        setProgress(100);
+        setUploadState('complete');
+        
+        setTimeout(() => {
+          navigate(`/results?id=${conversation.id}`);
+        }, 1500);
+      }, 3000);
+
+    } catch (err) {
+      console.error('💥 Upload error:', err);
+      console.error('📊 Error details:', {
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined
       });
-    }, 200);
+      setError(err instanceof Error ? err.message : 'Upload failed');
+      setUploadState('error');
+    }
   };
 
   const getStateMessage = () => {
-    switch (uploadState) {
-      case 'uploading':
-        return 'Uploading your conversation...';
-      case 'processing':
-        return 'Analyzing conversation patterns...';
-      case 'complete':
-        return 'Analysis complete! Redirecting...';
-      default:
-        return '';
+    const message = (() => {
+      switch (uploadState) {
+        case 'uploading':
+          return 'Uploading your conversation...';
+        case 'processing':
+          return 'Analyzing conversation patterns...';
+        case 'complete':
+          return 'Analysis complete! Redirecting...';
+        case 'error':
+          return 'Error occurred during upload. Please try again.';
+        default:
+          return '';
+      }
+    })();
+    
+    if (message) {
+      console.log('📢 State message:', message);
     }
+    
+    return message;
   };
 
   const getStateIcon = () => {
@@ -97,12 +172,30 @@ const UploadPage = () => {
       case 'processing':
       case 'uploading':
         return <div className="w-8 h-8 border-4 border-sage-200 border-t-sage-600 rounded-full animate-spin" />;
+      case 'error':
+        return <div className="w-8 h-8 text-red-600">!</div>;
       default:
         return null;
     }
   };
 
+  // Log state changes
+  React.useEffect(() => {
+    console.log('🔄 Upload state changed:', uploadState);
+  }, [uploadState]);
+
+  React.useEffect(() => {
+    console.log('📈 Progress updated:', progress + '%');
+  }, [progress]);
+
+  React.useEffect(() => {
+    if (error) {
+      console.log('❌ Error state:', error);
+    }
+  }, [error]);
+
   if (uploadState !== 'idle') {
+    console.log('🎭 Rendering upload state screen:', uploadState);
     return (
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg p-8 text-center">
@@ -144,6 +237,8 @@ const UploadPage = () => {
     );
   }
 
+  console.log('🏠 Rendering main upload page');
+  
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg p-8">
@@ -170,7 +265,10 @@ const UploadPage = () => {
             ref={fileInputRef}
             type="file"
             accept="video/*"
-            onChange={(e) => e.target.files && handleFileSelection(e.target.files[0])}
+            onChange={(e) => {
+              console.log('📂 File input changed');
+              e.target.files && handleFileSelection(e.target.files[0]);
+            }}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
 
@@ -223,7 +321,10 @@ const UploadPage = () => {
         {selectedFile && (
           <div className="mt-8">
             <button
-              onClick={simulateUploadAndProcessing}
+              onClick={() => {
+                console.log('🎬 Start Analysis button clicked');
+                handleUploadAndProcessing();
+              }}
               className="w-full flex items-center justify-center px-6 py-4 text-lg font-semibold text-white bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
             >
               <Upload className="w-5 h-5 mr-2" />

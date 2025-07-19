@@ -1,32 +1,35 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface ConversationData {
-  consent: boolean;
   relationship: string;
   context: string;
   tags: string[];
   emotionalTone: string;
-  videoFile?: File;
+  videoFile: File | null;
+  conversationId?: string; // Add this
 }
 
 interface ConversationContextType {
   conversationData: ConversationData;
-  updateContext: (data: Partial<ConversationData>) => void;
+  updateConversationData: (data: Partial<ConversationData>) => void;
   updateVideoFile: (file: File) => void;
+  setConversationId: (id: string) => void; // Add this
+  resetConversation: () => void;
 }
 
 const ConversationContext = createContext<ConversationContextType | undefined>(undefined);
 
 export const ConversationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [conversationData, setConversationData] = useState<ConversationData>({
-    consent: false,
     relationship: '',
     context: '',
     tags: [],
-    emotionalTone: ''
+    emotionalTone: '',
+    videoFile: null,
+    conversationId: undefined,
   });
 
-  const updateContext = (data: Partial<ConversationData>) => {
+  const updateConversationData = (data: Partial<ConversationData>) => {
     setConversationData(prev => ({ ...prev, ...data }));
   };
 
@@ -34,12 +37,31 @@ export const ConversationProvider: React.FC<{ children: ReactNode }> = ({ childr
     setConversationData(prev => ({ ...prev, videoFile: file }));
   };
 
+  const setConversationId = (id: string) => {
+    setConversationData(prev => ({ ...prev, conversationId: id }));
+  };
+
+  const resetConversation = () => {
+    setConversationData({
+      relationship: '',
+      context: '',
+      tags: [],
+      emotionalTone: '',
+      videoFile: null,
+      conversationId: undefined,
+    });
+  };
+
   return (
-    <ConversationContext.Provider value={{
-      conversationData,
-      updateContext,
-      updateVideoFile
-    }}>
+    <ConversationContext.Provider
+      value={{
+        conversationData,
+        updateConversationData,
+        updateVideoFile,
+        setConversationId,
+        resetConversation,
+      }}
+    >
       {children}
     </ConversationContext.Provider>
   );
