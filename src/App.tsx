@@ -8,6 +8,9 @@ import SavedConversations from './components/SavedConversations';
 import ResourcesPage from './components/ResourcesPage';
 import Navigation from './components/Navigation';
 import { ConversationProvider } from './context/ConversationContext';
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 function App() {
   return (
