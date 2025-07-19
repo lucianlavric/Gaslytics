@@ -1,5 +1,26 @@
 # User Prompt
 
+Read the guide in @TwelveLabs_Quickstart_Search.ipynb. Create a test video search using TwelveLabs on the video in @/assets . Let me know if you have any questions. Keep in mind I am using the TwelveLabs node.js SDK instead of the Python SDK used in the guide.
+
+# My Actions
+
+- Read the TwelveLabs Python SDK guide in the Jupyter notebook to understand the workflow
+- Found the correct Node.js SDK package name is `twelvelabs-js` (not just `twelvelabs`)
+- Installed the `twelvelabs-js` package using `npm install twelvelabs-js`
+- Completely rewrote `backend/src/twelveLabs.ts` to implement a comprehensive video search test using the Node.js SDK
+- Adapted the Python guide workflow to Node.js, including:
+  - Initialize TwelveLabs client with API key
+  - Create an index with Marengo 2.7 model (visual + audio options)
+  - Upload the `loveislandvid.mp4` video from the assets folder
+  - Monitor the indexing progress
+  - Perform multiple search queries relevant to the video content ("people talking", "emotional conversations", "drama and arguments", "romantic moments")
+  - Display formatted search results with scores, timestamps, and confidence levels
+- Added comprehensive error handling and user-friendly console output with emojis
+- Fixed the TypeScript error by properly handling the API key validation
+- Updated `docs/activity.md` with this detailed log
+
+# User Prompt
+
 `npm run dev` does not work. How come?
 
 # My Actions
