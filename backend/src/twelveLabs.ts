@@ -71,7 +71,7 @@ async function main() {
       __dirname,
       "..",
       "assets",
-      "gordonramseyarguement.mp4"
+      "argumentscenemovie.mp4"
     );
 
     // Check if video file exists
@@ -139,7 +139,14 @@ async function main() {
     // Step 3: Perform search queries
     console.log("\n🔍 Performing search queries...\n");
 
-    const searchQueries = ["people having an intense argument"];
+    const searchQueries = [
+      "People showing the interpersonal manipulation tactic Gaslighting",
+      "People showing People showcasing the interpersonal manipulation tactic Blame Shifting",
+      "People showing the interpersonal manipulation tactic Emotional Blackmail",
+      "People showing the interpersonal manipulation tactic Self-Presentation as a Victim",
+      "People showing the interpersonal manipulation tactic Exaggeration and Overstatement",
+      "People showing the interpersonal manipulation tactic Dominance and Control",
+    ];
 
     for (const query of searchQueries) {
       console.log(`\n🔍 Searching for: "${query}"`);

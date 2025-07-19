@@ -71,7 +71,7 @@ async function main() {
       __dirname,
       "..",
       "assets",
-      "gordonramseyarguement.mp4"
+      "shell-of-a-woman-2008-hd---revolutionary-road-78-movie-clip.mp4"
     );
 
     // Check if video file exists
@@ -130,39 +130,25 @@ async function main() {
       )
     );
 
-    // Step 3: Analyze video for gaslighting and manipulation techniques
-    console.log(
-      "\n🔍 Analyzing video for intense arguments and manipulation techniques...\n"
-    );
+    // Step 3: Read prompt from file and analyze video for manipulation techniques
+    console.log("\n🔍 Analyzing video for manipulation techniques...\n");
+
+    // Read the prompt from the text file
+    const promptPath = path.join(__dirname, "..", "prompt.txt");
+    let promptText: string;
+
+    try {
+      promptText = await fsPromises.readFile(promptPath, "utf-8");
+      console.log(`📄 Prompt loaded from: ${promptPath}`);
+    } catch (error) {
+      console.error(`❌ Error reading prompt file: ${promptPath}`, error);
+      return;
+    }
 
     const analysisPrompts = [
       {
-        name: "Intense Arguments Detection",
-        prompt: `Analyze this video and identify moments where intense arguments occur. Return the results in the following structured JSON format:
-
-{
-  "intense_arguments": [
-    {
-      "start_time": "time in seconds",
-      "end_time": "time in seconds", 
-      "transcription": "exact words spoken during this intense argument clip",
-      "confidence": "how sure are you that an intense argument took place here. 'low', 'medium', or 'high'",
-      "score": "how sure are you that an intense argument took place here. Numerical score out of 100."
-      "justification": "detailed explanation of how the model determined this was an intense argument (tone, volume, body language, content analysis)",
-      "healthy_response_advice": "specific guidance on healthy ways to respond or deal with this type of argumentative scenario"
-    }
-  ],
-}
-
-Focus on identifying moments with:
-- Raised voices or aggressive tone
-- Interrupting or talking over each other
-- Personal attacks or insults
-- Defensive or accusatory language
-- Emotional escalation
-- Manipulation tactics like gaslighting, guilt-tripping, or deflection
-
-Provide timestamps as precise as possible and include actual dialogue transcription for each identified segment.`,
+        name: "Manipulation Tactics Detection",
+        prompt: promptText,
       },
     ];
 

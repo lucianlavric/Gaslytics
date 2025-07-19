@@ -1,5 +1,78 @@
 # User Prompt
 
+have it instead read the txt file itself rather than just copy and pastrinng in the text
+
+# My Actions
+
+- Modified `backend/src/pegasus.ts` to read the prompt content from `backend/prompt.txt` at runtime instead of having it hardcoded
+- Added file reading logic using `fsPromises.readFile()` to load the prompt text from the external file
+- Added proper error handling for cases where the prompt file cannot be read
+- Added console logging to confirm the prompt file is loaded successfully
+- This approach allows for easy prompt modifications without changing the code
+- Updated `docs/activity.md` with this log entry
+
+# User Prompt
+
+Replace the promt in @pegasus.ts with the prompt in @prompt.txt
+
+# My Actions
+
+- Replaced the analysis prompt in `backend/src/pegasus.ts` with the comprehensive manipulation tactics detection prompt from `backend/prompt.txt`
+- Updated the analysis name from "Intense Arguments Detection" to "Manipulation Tactics Detection"
+- Changed the expected output format from "intense_arguments" array to "clips" array with fields: startTime, endTime, transcript, tactic, justification, confidence, solution
+- Integrated the 6-tactic manipulation detection system (gaslighting, blame-shifting, emotional blackmail, self-presentation as victim, exaggeration/overstatement, dominance & control) into the main analysis script
+- Updated `docs/activity.md` with this log entry
+
+# User Prompt
+
+Add a confidence property to the JSON that will be a numerical value out of 100
+
+# My Actions
+
+- Added a numeric `confidence` field (0-100) to the expected output JSON in `backend/prompt.txt`.
+- Updated the guidelines to instruct inclusion of the confidence score for each clip.
+- Logged this activity in `docs/activity.md`.
+
+put this in @prompt.txt
+
+# My Actions
+
+- Created a comprehensive prompt for AI video analysis software to detect six manipulation tactics: gaslighting, blame-shifting, emotional blackmail, self-presentation as victim, exaggeration/overstatement, and dominance/control
+- Designed the prompt to work with scene-level vector embeddings and multimodal analysis (audio + video)
+- Structured the output format as JSON with clips containing start/end times, transcripts, identified tactics, and justifications
+- Added the complete prompt to `backend/prompt.txt` for use in the Gaslytics application
+- Updated `docs/activity.md` with this log entry
+
+# User Prompt
+
+Also include a solution property to the JSON which gives a solution to deal with this tactic
+
+# My Actions
+
+- Added a `solution` field to the expected output JSON in `backend/prompt.txt`.
+- Updated the guidelines to instruct inclusion of an actionable solution for each detected tactic.
+- Logged this activity in `docs/activity.md`.
+
+# User Prompt
+
+Adjust my prompt. I want it to return moments where there is intense argument. Return in a structured JSON format: start and end times of where in the video intense argument takesp lace, transcription of the intense argument clip, a justification of how the model knows that intense argument takes place in that clip, and info of a healthy way to respond or deal with this scenario.
+
+# My Actions
+
+- Fixed linter errors in `backend/src/pegasus.ts` by removing invalid Task properties (`metadata`, `estimatedTime`, `processedFile`) that don't exist on the Task type
+- Corrected the `client.analyze()` method call to use the proper signature with two parameters (videoId, prompt) instead of an object parameter
+- Updated the analysis prompt to return structured JSON data with the following fields:
+  - `start_time` and `end_time` for precise timestamps of intense argument moments
+  - `transcription` of the actual dialogue during intense arguments
+  - `justification` explaining how the model determined it was an intense argument
+  - `healthy_response_advice` providing guidance on how to respond to such scenarios
+  - A `summary` section with total count, overall patterns, and intervention recommendations
+- The prompt now specifically looks for indicators like raised voices, interrupting, personal attacks, defensive language, emotional escalation, and manipulation tactics
+- Updated console log messages to reflect the focus on "intense argument detection"
+- Updated `docs/activity.md` with this detailed log entry
+
+# User Prompt
+
 Read the guide in @TwelveLabs_Quickstart_Search.ipynb. Create a test video search using TwelveLabs on the video in @/assets . Let me know if you have any questions. Keep in mind I am using the TwelveLabs node.js SDK instead of the Python SDK used in the guide.
 
 # My Actions
