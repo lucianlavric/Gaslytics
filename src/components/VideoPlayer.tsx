@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Play, Pause, Volume2, Maximize } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Play, Pause, Volume2, Maximize, VolumeX } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface Technique {
   id: number;
@@ -12,11 +13,16 @@ interface VideoPlayerProps {
   techniques: Technique[];
   currentTime: number;
   onTimeUpdate: (time: number) => void;
+  onTechniqueSelect?: (timestamp: number, patternId?: number) => void;
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTimeUpdate }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTimeUpdate, onTechniqueSelect }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState(300); // Mock 5-minute video
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -33,31 +39,134 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
     }
   };
 
-  const handleTimelineClick = (e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clickPosition = (e.clientX - rect.left) / rect.width;
-    const newTime = clickPosition * duration;
-    onTimeUpdate(newTime);
+  // Handle video metadata loaded
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      const handleLoadedMetadata = () => {
+        setDuration(video.duration);
+      };
+      video.addEventListener('loadedmetadata', handleLoadedMetadata);
+      return () => video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    }
+  }, []);
+
+  // Handle time updates from video
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      const handleTimeUpdate = () => {
+        onTimeUpdate(video.currentTime);
+      };
+      video.addEventListener('timeupdate', handleTimeUpdate);
+      return () => video.removeEventListener('timeupdate', handleTimeUpdate);
+    }
+  }, [onTimeUpdate]);
+
+  // Sync external currentTime changes to video
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video && Math.abs(video.currentTime - currentTime) > 0.5) {
+      video.currentTime = currentTime;
+    }
+  }, [currentTime]);
+
+  const handlePlayPause = () => {
+    const video = videoRef.current;
+    if (video) {
+      if (isPlaying) {
+        video.pause();
+      } else {
+        video.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
   };
 
-  const jumpToTechnique = (timestamp: number) => {
-    onTimeUpdate(timestamp);
+  const handleTimelineClick = (e: React.MouseEvent) => {
+    const video = videoRef.current;
+    if (video && duration > 0) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickPosition = (e.clientX - rect.left) / rect.width;
+      const newTime = clickPosition * duration;
+      video.currentTime = newTime;
+      onTimeUpdate(newTime);
+    }
+  };
+
+  const jumpToTechnique = (timestamp: number, patternId?: number) => {
+    const video = videoRef.current;
+    if (video) {
+      video.currentTime = timestamp;
+      onTimeUpdate(timestamp);
+    }
+    if (onTechniqueSelect && patternId !== undefined) {
+      onTechniqueSelect(timestamp, patternId);
+    }
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const video = videoRef.current;
+    if (video) {
+      const newVolume = parseFloat(e.target.value);
+      setVolume(newVolume);
+      video.volume = newVolume;
+      setIsMuted(newVolume === 0);
+    }
+  };
+
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (video) {
+      if (isMuted) {
+        video.volume = volume;
+        setIsMuted(false);
+      } else {
+        video.volume = 0;
+        setIsMuted(true);
+      }
+    }
+  };
+
+  const toggleFullscreen = () => {
+    const video = videoRef.current;
+    if (video) {
+      if (!isFullscreen) {
+        if (video.requestFullscreen) {
+          video.requestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+      setIsFullscreen(!isFullscreen);
+    }
   };
 
   return (
     <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg overflow-hidden">
       {/* Video Area */}
       <div className="relative bg-slate-900 aspect-video">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-white text-center">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
-              <Play className="w-8 h-8" />
-            </div>
-            <p className="text-sm opacity-80">Video would play here</p>
-            <p className="text-xs opacity-60 mt-1">
-              Current time: {formatTime(currentTime)}
-            </p>
-          </div>
+        <video
+          ref={videoRef}
+          className="w-full h-full object-cover"
+          src="/tempmedia/Hydrolic Press 5 Minute Countdown.mp4"
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onEnded={() => setIsPlaying(false)}
+        >
+          Your browser does not support the video tag.
+        </video>
+        
+        {/* Video overlay controls */}
+        <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+          <button
+            onClick={handlePlayPause}
+            className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300"
+          >
+            {isPlaying ? <Pause className="w-8 h-8 text-white" /> : <Play className="w-8 h-8 text-white ml-1" />}
+          </button>
         </div>
       </div>
 
@@ -70,20 +179,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
             onClick={handleTimelineClick}
           >
             {/* Progress bar */}
-            <div 
+            <motion.div 
               className="h-2 bg-sage-500 rounded-full"
-              style={{ width: `${(currentTime / duration) * 100}%` }}
+              initial={false}
+              animate={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+              transition={{ duration: 0.1, ease: 'linear' }}
+              style={{ position: 'absolute', left: 0, top: 0 }}
             />
-            
             {/* Technique markers */}
             {techniques.map((technique) => (
               <button
                 key={technique.id}
                 className={`absolute top-0 w-3 h-3 rounded-full transform -translate-y-0.5 hover:scale-125 transition-transform ${getMarkerColor(technique.severity)}`}
-                style={{ left: `${(technique.timestamp / duration) * 100}%` }}
+                style={{ left: `${duration > 0 ? (technique.timestamp / duration) * 100 : 0}%` }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  jumpToTechnique(technique.timestamp);
+                  jumpToTechnique(technique.timestamp, technique.id);
                 }}
                 title={`${technique.name} - ${formatTime(technique.timestamp)}`}
               />
@@ -100,21 +211,32 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <button
-              onClick={() => setIsPlaying(!isPlaying)}
+              onClick={handlePlayPause}
               className="w-10 h-10 bg-sage-500 hover:bg-sage-600 text-white rounded-full flex items-center justify-center transition-colors"
             >
               {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
             </button>
             
             <div className="flex items-center space-x-2">
-              <Volume2 className="w-4 h-4 text-slate-600" />
-              <div className="w-16 h-1 bg-slate-200 rounded-full">
-                <div className="w-3/4 h-1 bg-slate-400 rounded-full" />
-              </div>
+              <button onClick={toggleMute} className="text-slate-600 hover:text-slate-800 transition-colors">
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={isMuted ? 0 : volume}
+                onChange={handleVolumeChange}
+                className="w-16 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer slider"
+              />
             </div>
           </div>
 
-          <button className="p-2 text-slate-600 hover:text-slate-800 transition-colors">
+          <button 
+            onClick={toggleFullscreen}
+            className="p-2 text-slate-600 hover:text-slate-800 transition-colors"
+          >
             <Maximize className="w-4 h-4" />
           </button>
         </div>
@@ -126,7 +248,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
             {techniques.map((technique) => (
               <button
                 key={technique.id}
-                onClick={() => jumpToTechnique(technique.timestamp)}
+                onClick={() => jumpToTechnique(technique.timestamp, technique.id)}
                 className={`px-3 py-1 text-xs rounded-full transition-colors ${
                   technique.severity === 'severe' ? 'bg-red-100 text-red-700 hover:bg-red-200' :
                   technique.severity === 'moderate' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' :
@@ -139,6 +261,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
           </div>
         </div>
       </div>
+
+      
     </div>
   );
 };

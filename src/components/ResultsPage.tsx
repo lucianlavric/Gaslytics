@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
-import { AlertTriangle, Info, ExternalLink } from 'lucide-react';
-import TechniqueModal from './TechniqueModal';
-import VideoPlayer from './VideoPlayer';
+import React from 'react';
+import { Info, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useConversation } from '../context/ConversationContext';
 
 const ResultsPage = () => {
   const { conversationData } = useConversation();
-  const [selectedTechnique, setSelectedTechnique] = useState<any>(null);
-  const [currentTime, setCurrentTime] = useState(0);
+  const navigate = useNavigate();
 
   // Mock analysis results
   const analysisResults = {
@@ -66,24 +64,6 @@ const ResultsPage = () => {
     ]
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'severe': return 'border-red-300 bg-red-50';
-      case 'moderate': return 'border-amber-300 bg-amber-50';
-      case 'mild': return 'border-yellow-300 bg-yellow-50';
-      default: return 'border-slate-300 bg-slate-50';
-    }
-  };
-
-  const getSeverityTextColor = (severity: string) => {
-    switch (severity) {
-      case 'severe': return 'text-red-700';
-      case 'moderate': return 'text-amber-700';
-      case 'mild': return 'text-yellow-700';
-      default: return 'text-slate-700';
-    }
-  };
-
   const getScoreColor = (score: number) => {
     if (score >= 70) return 'text-red-600';
     if (score >= 40) return 'text-amber-600';
@@ -96,112 +76,73 @@ const ResultsPage = () => {
     return 'Minimal manipulation detected. Focus on improving communication.';
   };
 
+  const handleSeeDeeperInsights = () => {
+    navigate('/deep-insights');
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-800 mb-2">Conversation Analysis</h1>
         <p className="text-slate-600">A gentle, supportive analysis of your conversation patterns</p>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Left Column - Summary and Video */}
-        <div className="space-y-6">
-          {/* AI Summary */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-slate-800 mb-4">Conversation Summary</h2>
-            <p className="text-slate-700 leading-relaxed mb-6">{analysisResults.summary}</p>
-            
-            <div className="border-t border-slate-200 pt-4">
-              <h3 className="font-semibold text-slate-800 mb-2">Mediator's Perspective</h3>
-              <p className="text-slate-600 text-sm leading-relaxed">{analysisResults.verdict}</p>
-            </div>
+      <div className="space-y-6">
+        {/* AI Summary */}
+        <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg p-6">
+          <h2 className="text-xl font-bold text-slate-800 mb-4">Conversation Summary</h2>
+          <p className="text-slate-700 leading-relaxed mb-6">{analysisResults.summary}</p>
+          
+          <div className="border-t border-slate-200 pt-4">
+            <h3 className="font-semibold text-slate-800 mb-2">Mediator's Perspective</h3>
+            <p className="text-slate-600 text-sm leading-relaxed">{analysisResults.verdict}</p>
           </div>
-
-          {/* Gaslight Score */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-slate-800">Manipulation Likelihood</h2>
-              <Info className="w-5 h-5 text-slate-400" />
-            </div>
-            
-            <div className="text-center mb-4">
-              <div className={`text-4xl font-bold mb-2 ${getScoreColor(analysisResults.gaslightScore)}`}>
-                {analysisResults.gaslightScore}%
-              </div>
-              <p className={`text-sm ${getScoreColor(analysisResults.gaslightScore)}`}>
-                {getScoreMessage(analysisResults.gaslightScore)}
-              </p>
-            </div>
-
-            <div className="w-full bg-slate-200 rounded-full h-3">
-              <div 
-                className={`h-3 rounded-full ${
-                  analysisResults.gaslightScore >= 70 ? 'bg-red-500' :
-                  analysisResults.gaslightScore >= 40 ? 'bg-amber-500' : 'bg-green-500'
-                }`}
-                style={{ width: `${analysisResults.gaslightScore}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Video Player */}
-          <VideoPlayer 
-            techniques={analysisResults.techniques}
-            currentTime={currentTime}
-            onTimeUpdate={setCurrentTime}
-          />
         </div>
 
-        {/* Right Column - Techniques */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-800 mb-4">Detected Patterns</h2>
+        {/* Gaslight Score */}
+        <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-slate-800">Manipulation Likelihood</h2>
+            <Info className="w-5 h-5 text-slate-400" />
+          </div>
           
-          {analysisResults.techniques.map((technique) => (
-            <div
-              key={technique.id}
-              className={`border-2 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${getSeverityColor(technique.severity)}`}
-              onClick={() => setSelectedTechnique(technique)}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <h3 className={`font-semibold ${getSeverityTextColor(technique.severity)}`}>
-                  {technique.name}
-                </h3>
-                <div className="flex items-center space-x-2">
-                  {technique.severity === 'severe' && (
-                    <AlertTriangle className="w-4 h-4 text-red-600" />
-                  )}
-                  <span className="text-xs bg-white px-2 py-1 rounded-full">
-                    {Math.floor(technique.timestamp / 60)}:{String(technique.timestamp % 60).padStart(2, '0')}
-                  </span>
-                </div>
-              </div>
-              
-              <p className="text-sm text-slate-600 mb-3">{technique.definition}</p>
-              
-              <blockquote className={`text-sm italic border-l-4 pl-3 ${
-                technique.severity === 'severe' ? 'border-red-400 text-red-800' :
-                technique.severity === 'moderate' ? 'border-amber-400 text-amber-800' :
-                'border-yellow-400 text-yellow-800'
-              }`}>
-                "{technique.quote}"
-              </blockquote>
-              
-              <div className="mt-3 flex items-center text-xs text-slate-500">
-                <ExternalLink className="w-3 h-3 mr-1" />
-                Click to learn more
-              </div>
+          <div className="text-center mb-4">
+            <div className={`text-4xl font-bold mb-2 ${getScoreColor(analysisResults.gaslightScore)}`}>
+              {analysisResults.gaslightScore}%
             </div>
-          ))}
+            <p className={`text-sm ${getScoreColor(analysisResults.gaslightScore)}`}>
+              {getScoreMessage(analysisResults.gaslightScore)}
+            </p>
+          </div>  
+
+          <div className="w-full bg-slate-200 rounded-full h-3">
+            <div 
+              className={`h-3 rounded-full ${
+                analysisResults.gaslightScore >= 70 ? 'bg-red-500' :
+                analysisResults.gaslightScore >= 40 ? 'bg-amber-500' : 'bg-green-500'
+              }`}
+              style={{ width: `${analysisResults.gaslightScore}%` }}
+            />
+          </div>
+        </div>
+
+        {/* See Deeper Insights Button */}
+        <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg p-6">
+          <div className="text-center">
+            <h2 className="text-xl font-bold text-slate-800 mb-4">Want to explore deeper?</h2>
+            <p className="text-slate-600 mb-6">
+              Dive into detailed patterns, timestamps, and specific moments in your conversation with interactive video analysis.
+            </p>
+            <button
+              onClick={handleSeeDeeperInsights}
+              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
+            >
+              See Deeper Insights
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
-
-      {/* Technique Modal */}
-      {selectedTechnique && (
-        <TechniqueModal
-          technique={selectedTechnique}
-          onClose={() => setSelectedTechnique(null)}
-        />
-      )}
     </div>
   );
 };
