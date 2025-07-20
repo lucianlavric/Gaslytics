@@ -16,10 +16,12 @@ const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-rose-400 to-amber-400 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">G</span>
-            </div>
-            <span className="text-xl font-semibold text-slate-700">Gasalytics</span>
+            <img 
+              src="/logo.png" 
+              alt="Gaslytics Logo" 
+              className="w-8 h-8 object-contain"
+            />
+            <span className="text-xl font-semibold text-slate-700">Gaslytics</span>
           </Link>
           
           <div className="flex space-x-6">
