@@ -7,6 +7,13 @@ if (!TWELVE_LABS_API_KEY) {
   console.error("VITE_TWELVE_LABS_API_KEY is not set in environment variables");
 }
 
+if (typeof globalThis.process === "undefined") {
+  // Minimal polyfill for TwelveLabs SDK in browser
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  globalThis.process = { env: {} };
+}
+
 export interface ProcessingResult {
   success: boolean;
   videoId?: string;

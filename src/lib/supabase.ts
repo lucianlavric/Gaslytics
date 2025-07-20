@@ -275,11 +275,11 @@ export const updateConversationAnalysis = async (
   return data;
 };
 
-// Process video with TwelveLabs directly in frontend
-export const processVideoDirectly = async (
+// Process video with TwelveLabs backend server (no CORS issues)
+export const processVideoWithBackend = async (
   conversationId: string,
   filePath: string,
-  progressCallback?: (stage: string, progress: number) => void
+  progressCallback?: (stage: string, progress: number, message?: string) => void
 ) => {
   const user = await getCurrentUser();
   if (!user) {
@@ -291,31 +291,87 @@ export const processVideoDirectly = async (
     const signedUrl = await getFileUrl(filePath);
     console.log("🔗 Got signed URL for video processing");
 
-    // Import TwelveLabs processing function
-    const { processVideoWithTwelveLabs } = await import("./twelveLabs");
+    // Call backend API to process video
+    const backendUrl = "http://localhost:3001/api/process-video";
 
-    // Process the video directly
-    const result = await processVideoWithTwelveLabs(
-      signedUrl,
-      progressCallback
-    );
+    const response = await fetch(backendUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ videoUrl: signedUrl }),
+    });
 
-    if (result.success) {
-      // Update database with results
-      await updateConversationAnalysis(conversationId, {
-        twelveLabsVideoId: result.videoId,
-        twelveLabsIndexId: result.indexId,
-        clips: result.analysisResult,
-      });
+    if (!response.ok) {
+      throw new Error(`Backend processing failed: ${response.status}`);
+    }
 
-      progressCallback?.("Complete", 100);
-      return { success: true, analysisResult: result.analysisResult };
-    } else {
-      throw new Error(result.error || "Processing failed");
+    // Handle Server-Sent Events for progress with enhanced logging
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error("Failed to get response reader");
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          try {
+            const data = JSON.parse(line.slice(6));
+
+            if (data.type === "connected") {
+              console.log("🔗 Connected to backend processing server");
+            } else if (data.type === "progress") {
+              console.log(
+                `📊 Backend progress: ${data.progress}% - ${data.stage}`
+              );
+              if (data.message) {
+                console.log(`💬 ${data.message}`);
+              }
+              progressCallback?.(data.stage, data.progress, data.message);
+            } else if (data.type === "log") {
+              console.log(`📋 Backend log [${data.level}]: ${data.message}`);
+            } else if (data.type === "complete") {
+              // Processing complete, update database with results
+              const result = data.result;
+
+              if (result.success) {
+                console.log("✅ Backend processing completed successfully");
+                await updateConversationAnalysis(conversationId, {
+                  twelveLabsVideoId: result.videoId,
+                  twelveLabsIndexId: result.indexId,
+                  clips: result.analysisResult,
+                });
+
+                progressCallback?.(
+                  "Complete",
+                  100,
+                  "Analysis saved to database"
+                );
+                return { success: true, analysisResult: result.analysisResult };
+              } else {
+                throw new Error(result.error || "Processing failed");
+              }
+            } else if (data.type === "error") {
+              throw new Error(data.error);
+            }
+          } catch (parseError) {
+            console.warn("Failed to parse SSE data:", line);
+          }
+        }
+      }
     }
   } catch (error) {
     console.error("❌ Error processing video:", error);
-
     throw error;
   }
 };

@@ -20,6 +20,25 @@ const DeepInsightsPage = () => {
   // Get conversation ID from URL params
   const conversationId = searchParams.get("id");
 
+  // ----------------------
+  // Mock analysis results (used as fallback) – moved above useEffect to avoid TDZ errors
+  const analysisResults = {
+    summary:
+      "This conversation shows signs of emotional manipulation through consistent interruption patterns and dismissive language. The speaker frequently redirected blame and used minimizing language when discussing the other person's concerns. However, there were also moments of genuine dialogue and attempts at resolution.",
+    verdict:
+      "While this conversation contained some concerning manipulation tactics, it appears both parties were attempting to communicate. The manipulation detected seems more defensive than intentional. Consider focusing on establishing clearer communication boundaries and using 'I' statements to express feelings.",
+    gaslightScore: 34,
+    overallTone: "Defensive with moments of genuine concern",
+    emotionalTrajectory: [
+      { time: 0, emotion: "calm" },
+      { time: 30, emotion: "tense" },
+      { time: 90, emotion: "heated" },
+      { time: 150, emotion: "defensive" },
+      { time: 210, emotion: "conciliatory" },
+    ],
+    techniques: [],
+  };
+
   // Load conversation data and video URL
   useEffect(() => {
     const loadConversationData = async () => {
@@ -147,78 +166,6 @@ const DeepInsightsPage = () => {
 
   // Use loaded analysis data or fall back to mock
   const currentAnalysis = analysisData || analysisResults;
-
-  // Mock analysis results
-  const analysisResults = {
-    summary:
-      "This conversation shows signs of emotional manipulation through consistent interruption patterns and dismissive language. The speaker frequently redirected blame and used minimizing language when discussing the other person's concerns. However, there were also moments of genuine dialogue and attempts at resolution.",
-    verdict:
-      "While this conversation contained some concerning manipulation tactics, it appears both parties were attempting to communicate. The manipulation detected seems more defensive than intentional. Consider focusing on establishing clearer communication boundaries and using 'I' statements to express feelings.",
-    gaslightScore: 34,
-    overallTone: "Defensive with moments of genuine concern",
-    emotionalTrajectory: [
-      { time: 0, emotion: "calm" },
-      { time: 30, emotion: "tense" },
-      { time: 90, emotion: "heated" },
-      { time: 150, emotion: "defensive" },
-      { time: 210, emotion: "conciliatory" },
-    ],
-    techniques: [
-      {
-        id: 1,
-        name: "Deflection",
-        severity: "moderate",
-        timestamp: 45,
-        quote:
-          "Why are you making this about me? You're the one who started this argument.",
-        definition:
-          "Redirecting blame or attention away from one's own actions or responsibility.",
-        explanation:
-          "The speaker avoided taking responsibility by immediately shifting focus to the other person's behavior.",
-        examples:
-          "Instead of addressing the concern raised, the focus was shifted to who 'started' the conflict.",
-      },
-      {
-        id: 2,
-        name: "Minimizing",
-        severity: "mild",
-        timestamp: 78,
-        quote: "You're overreacting. It's not that big of a deal.",
-        definition:
-          "Dismissing or downplaying someone's feelings or experiences.",
-        explanation:
-          "The speaker invalidated the other person's emotional response rather than acknowledging their feelings.",
-        examples:
-          "Using phrases like 'overreacting' or 'not a big deal' dismisses the other person's valid emotions.",
-      },
-      {
-        id: 3,
-        name: "Gaslighting",
-        severity: "severe",
-        timestamp: 134,
-        quote: "I never said that. You're remembering it wrong again.",
-        definition:
-          "Making someone question their own memory, perception, or judgment.",
-        explanation:
-          "This statement directly challenges the other person's memory and suggests a pattern ('again') of them being wrong.",
-        examples:
-          "Consistently denying previous statements or suggesting the other person has poor memory.",
-      },
-      {
-        id: 4,
-        name: "Emotional Blackmail",
-        severity: "moderate",
-        timestamp: 189,
-        quote: "If you really cared about me, you wouldn't bring this up.",
-        definition:
-          "Using guilt or emotional pressure to control someone's behavior.",
-        explanation:
-          "The speaker questioned the other person's care and love as a way to avoid addressing the issue.",
-        examples:
-          "Making someone feel guilty for having legitimate concerns or needs.",
-      },
-    ],
-  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {

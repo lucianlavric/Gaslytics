@@ -7,13 +7,14 @@ import {
   createConversation,
   testConnection,
   getCurrentUser,
-  processVideoDirectly,
+  processVideoWithBackend,
 } from "../lib/supabase";
 import { motion } from "framer-motion";
 
 const UploadPage = () => {
   const navigate = useNavigate();
-  const { conversationData, updateVideoFile } = useConversation();
+  const { conversationData, updateVideoFile, setConversationId } =
+    useConversation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const [uploadState, setUploadState] = useState<
@@ -123,6 +124,8 @@ const UploadPage = () => {
       console.log("📋 Conversation payload:", conversationPayload);
 
       const conversation = await createConversation(conversationPayload);
+      // Save conversation ID in context for later navigation
+      setConversationId(conversation.id);
       console.log("✅ Conversation created successfully:", conversation);
 
       setProgress(60);
@@ -136,11 +139,15 @@ const UploadPage = () => {
       console.log("🎬 Starting TwelveLabs processing...");
 
       try {
-        await processVideoDirectly(
+        await processVideoWithBackend(
           conversation.id,
           filePath,
-          (stage: string, progress: number) => {
-            console.log(`📊 Processing update: ${stage} - ${progress}%`);
+          (stage: string, progress: number, message?: string) => {
+            console.log(
+              `📊 Processing update: ${stage} - ${progress}%${
+                message ? ` (${message})` : ""
+              }`
+            );
             setProgress(Math.max(60, progress)); // Ensure progress starts from upload completion
           }
         );
