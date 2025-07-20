@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, Download, Trash2, Eye, Archive } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const SavedConversations = () => {
   const [conversations] = useState([
@@ -42,7 +43,13 @@ const SavedConversations = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -24 }}
+      transition={{ duration: 0.4, ease: 'easeInOut' }}
+      className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+    >
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-800 mb-2">Saved Conversations</h1>
         <p className="text-slate-600">Review your previous conversation analyses and track patterns over time.</p>
@@ -143,7 +150,7 @@ const SavedConversations = () => {
           </button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

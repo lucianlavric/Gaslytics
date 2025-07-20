@@ -1,4 +1,5 @@
 import { ExternalLink, Book, Users, Phone, Heart } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const ResourcesPage = () => {
   const resourceCategories = [
@@ -125,7 +126,13 @@ const ResourcesPage = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -24 }}
+      transition={{ duration: 0.4, ease: 'easeInOut' }}
+      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+    >
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-slate-800 mb-4">Support Resources</h1>
         <p className="text-xl text-slate-600 max-w-2xl mx-auto">
@@ -221,7 +228,7 @@ const ResourcesPage = () => {
           </a>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
