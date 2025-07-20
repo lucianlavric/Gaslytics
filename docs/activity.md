@@ -1,5 +1,49 @@
 # User Prompt
 
+Still failed. Railway build logs show Caddy web server being used instead of Node.js backend.
+
+# My Analysis & Actions
+
+- **🚨 Railway Misdetection Issue**: Railway is treating this as a full-stack app instead of a Node.js backend:
+
+  - Logs show: `║ start │ exec caddy run --config /assets/Caddyfile --adapter caddyfile ║`
+  - Railway detects frontend files in root (package.json, index.html, vite.config.ts)
+  - It builds backend (`cd backend && npm run build`) but serves with Caddy (web server for static files)
+  - We need Railway to deploy ONLY the backend directory as a Node.js service
+
+- **🔧 Fixed Service Type Detection**:
+
+  - Created `backend/nixpacks.toml` to force Railway to detect this as Node.js backend
+  - Explicitly specified Node.js 18, install, build, and start phases
+  - Removed `postinstall` script from `package.json` to avoid double-building
+  - Added explicit `buildCommand` to `railway.json` for clarity
+  - Now Railway will: install → build → start Node.js (no more Caddy!)
+
+- **📍 Fixed Railway Configuration Location**:
+  - Moved `railway.json` from `backend/` to root directory (Railway only reads from root)
+  - Added `"root": "backend"` to tell Railway to deploy from backend directory
+  - Now Railway will find config → change to backend dir → use nixpacks.toml → deploy Node.js!
+
+# User Prompt
+
+Check out my @railway.json and figure out why pre-deploy command failed.
+
+# My Analysis & Actions
+
+- **🔍 Identified Railway Configuration Issue**: Found mismatch between build and start commands in `railway.json`
+
+  - `npm run build` compiles TypeScript to `./dist` directory using `tsc`
+  - But `npm start` tries to run `tsx src/server.ts` (TypeScript source) instead of compiled JavaScript
+  - This creates a deployment failure as the start command doesn't use the built artifacts
+
+- **🚀 Fixed Railway Deployment Configuration**:
+  - Updated `backend/package.json` start script: `tsx src/server.ts` → `node dist/server.js`
+  - Simplified `backend/railway.json` startCommand: `npm run build && npm start` → `npm start`
+  - Now properly uses compiled JavaScript from build step (postinstall already runs build)
+  - Deployment flow: npm install → postinstall runs build → start runs compiled JS
+
+# User Prompt
+
 Please look at all my config files and make sure that @railway.json is set up properly
 
 # My Actions
