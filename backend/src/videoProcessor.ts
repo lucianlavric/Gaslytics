@@ -29,6 +29,131 @@ export interface ProgressCallback {
   (stage: string, progress: number, message?: string): void;
 }
 
+// Validate JSON analysis data against the expected schema from prompt.txt
+export const validateAnalysisData = (
+  analysisData: any
+): { isValid: boolean; error?: string; validatedData?: any } => {
+  try {
+    // Check if analysisData has the expected structure
+    if (!analysisData || typeof analysisData !== "object") {
+      return { isValid: false, error: "Analysis data must be an object" };
+    }
+
+    // If it's raw data (not parsed JSON), return as is
+    if (analysisData.raw) {
+      return { isValid: true, validatedData: analysisData };
+    }
+
+    // Check if clips array exists
+    if (!analysisData.clips || !Array.isArray(analysisData.clips)) {
+      return {
+        isValid: false,
+        error: 'Analysis data must contain a "clips" array',
+      };
+    }
+
+    // Validate each clip in the array
+    const validTactics = [
+      "Gaslighting",
+      "Blame-shifting",
+      "Emotional blackmail",
+      "Self-presentation as victim",
+      "Exaggeration / overstatement",
+      "Dominance & control",
+    ];
+
+    const validatedClips = analysisData.clips.map(
+      (clip: any, index: number) => {
+        // Check required fields
+        if (
+          !clip.startTime ||
+          !clip.endTime ||
+          !clip.transcript ||
+          !clip.tactic ||
+          !clip.justification ||
+          !clip.confidence ||
+          !clip.solution
+        ) {
+          throw new Error(
+            `Clip ${
+              index + 1
+            } is missing required fields. Required: startTime, endTime, transcript, tactic, justification, confidence, solution`
+          );
+        }
+
+        // Validate time format (HH:MM:SS.ss or HH:MM:SS)
+        const timeRegex = /^\d{2}:\d{2}:\d{2}(\.\d{2})?$/;
+        if (!timeRegex.test(clip.startTime) || !timeRegex.test(clip.endTime)) {
+          throw new Error(
+            `Clip ${
+              index + 1
+            } has invalid time format. Expected: HH:MM:SS.ss or HH:MM:SS`
+          );
+        }
+
+        // Validate tactic is one of the allowed values
+        if (!validTactics.includes(clip.tactic)) {
+          throw new Error(
+            `Clip ${index + 1} has invalid tactic. Allowed: ${validTactics.join(
+              ", "
+            )}`
+          );
+        }
+
+        // Validate confidence is a number between 0-100
+        if (
+          typeof clip.confidence !== "number" ||
+          clip.confidence < 0 ||
+          clip.confidence > 100
+        ) {
+          throw new Error(
+            `Clip ${
+              index + 1
+            } has invalid confidence. Must be a number between 0-100`
+          );
+        }
+
+        // Validate all fields are strings (except confidence)
+        if (
+          typeof clip.transcript !== "string" ||
+          typeof clip.justification !== "string" ||
+          typeof clip.solution !== "string"
+        ) {
+          throw new Error(
+            `Clip ${
+              index + 1
+            } has invalid field types. transcript, justification, and solution must be strings`
+          );
+        }
+
+        return {
+          startTime: clip.startTime,
+          endTime: clip.endTime,
+          transcript: clip.transcript,
+          tactic: clip.tactic,
+          justification: clip.justification,
+          confidence: clip.confidence,
+          solution: clip.solution,
+        };
+      }
+    );
+
+    // Return validated data with proper structure
+    return {
+      isValid: true,
+      validatedData: {
+        clips: validatedClips,
+      },
+    };
+  } catch (error) {
+    return {
+      isValid: false,
+      error:
+        error instanceof Error ? error.message : "Unknown validation error",
+    };
+  }
+};
+
 export async function processVideoWithTwelveLabs(
   videoUrl: string,
   progressCallback?: ProgressCallback
@@ -168,8 +293,30 @@ export async function processVideoWithTwelveLabs(
         console.log(
           `📊 Found ${analysisData.clips?.length || 0} clips in analysis`
         );
+
+        // Validate the analysis data before returning
+        const validation = validateAnalysisData(analysisData);
+        if (!validation.isValid) {
+          console.error(
+            "❌ Analysis data validation failed:",
+            validation.error
+          );
+          progressCallback?.(
+            "Validation failed",
+            0,
+            `Analysis data validation failed: ${validation.error}`
+          );
+          return {
+            success: false,
+            error: `Analysis data validation failed: ${validation.error}`,
+          };
+        }
+
+        console.log("✅ Analysis data validation passed");
+        analysisData = validation.validatedData;
+
         progressCallback?.(
-          "Results parsed",
+          "Results validated",
           95,
           `Found ${analysisData.clips?.length || 0} manipulation instances`
         );
