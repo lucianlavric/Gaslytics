@@ -19,13 +19,12 @@
     "@google/generative-ai": "^0.24.1",
     "dotenv": "^16.6.1",
     "node-fetch": "^3.3.2",
+    "tsx": "^4.20.3",
     "twelvelabs-js": "^0.4.12",
     "typescript": "^5.4.5"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.20.3",
-    "typescript": "^5.4.5"
+    "ts-node": "^10.9.2"
   }
 }
