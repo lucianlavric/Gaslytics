@@ -8,8 +8,7 @@
     "dev": "tsx src/twelveLabs.ts",
     "server": "tsx src/server.ts",
     "start": "node dist/server.js",
-    "build": "tsc",
-    "postinstall": "npm run build"
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
