@@ -426,7 +426,7 @@ export const processVideoWithBackend = async (
     console.log("🔗 Got signed URL for video processing");
 
     // Call backend API to process video
-    const backendUrl = "http://localhost:3001/api/process-video";
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001/api/process-video";
 
     const response = await fetch(backendUrl, {
       method: "POST",

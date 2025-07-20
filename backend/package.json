@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsx src/twelveLabs.ts",
     "server": "tsx src/server.ts",
-    "start": "tsx src/server.ts"
+    "start": "tsx src/server.ts",
+    "build": "tsc",
+    "postinstall": "npm run build"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +18,8 @@
   "dependencies": {
     "dotenv": "^16.6.1",
     "node-fetch": "^3.3.2",
-    "twelvelabs-js": "^0.4.12"
+    "twelvelabs-js": "^0.4.12",
+    "typescript": "^5.4.5"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
