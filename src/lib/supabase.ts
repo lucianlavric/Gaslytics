@@ -434,10 +434,12 @@ export const processVideoWithBackend = async (
     console.log("🔗 Got signed URL for video processing");
 
     // Call backend API to process video
-    const backendUrl =
-      import.meta.env.VITE_API_BASE_URL ||
-      import.meta.env.VITE_BACKEND_URL ||
-      "http://localhost:3001/api/process-video";
+    // const backendUrl =
+    //   import.meta.env.VITE_API_BASE_URL ||
+    //   import.meta.env.VITE_BACKEND_URL ||
+    //   "http://localhost:3001/api/process-video";
+
+    const backendUrl = "gaslytics-backend-production.up.railway.app";
 
     const response = await fetch(backendUrl, {
       method: "POST",
