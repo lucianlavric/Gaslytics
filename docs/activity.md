@@ -1,5 +1,25 @@
 # User Prompt
 
+This is my railway URL: gaslytics-backend-production.up.railway.app
+
+I have deployed a different repo on Railway which contains the backend/ folder contents.
+
+Why no work?
+
+Here are the console logs for the vercel deployment: [Console logs showing 404 error when calling backend]
+
+# My Analysis & Actions
+
+- **🔧 Fixed Backend URL Configuration**: The issue was in `src/lib/supabase.ts` line 442:
+  - **Problem**: Backend URL was missing protocol and endpoint path: `"gaslytics-backend-production.up.railway.app"`
+  - **Solution**: Updated to full URL: `"https://gaslytics-backend-production.up.railway.app/api/process-video"`
+  - **Root Cause**: Frontend was making requests to incomplete URL, causing 404 errors
+  - **Status**: Fixed - should resolve the "Backend processing failed: 404" error
+
+---
+
+# User Prompt
+
 Still failed. Railway build logs show Caddy web server being used instead of Node.js backend.
 
 # My Analysis & Actions
