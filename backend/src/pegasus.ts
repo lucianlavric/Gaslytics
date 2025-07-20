@@ -74,7 +74,7 @@ async function main() {
       "shell-of-a-woman-2008-hd---revolutionary-road-78-movie-clip.mp4"
     );
 
-    // Check if video file exists
+    // Check if video file exists-
     try {
       await fsPromises.access(videoPath);
       console.log(`📁 Video file found: ${videoPath}`);
