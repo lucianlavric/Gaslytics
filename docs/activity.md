@@ -1,5 +1,13 @@
 # User Prompt
 
+Still not building. Railway logs show tsx not found. Please fix.
+
+# My Actions
+
+- **🐛 Fix Runtime Dependency Issue**: Moved `tsx` from `devDependencies` to `dependencies` in `backend/package.json` so it is installed in the production environment on Railway.
+
+# User Prompt
+
 Please implement this quick fix for me
 
 # My Actions
