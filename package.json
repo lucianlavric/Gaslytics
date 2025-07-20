@@ -12,11 +12,15 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.52.0",
     "@uppy/react": "^4.4.0",
+    "buffer": "^6.0.3",
+    "dotenv": "^17.2.0",
     "framer-motion": "^12.23.6",
     "lucide-react": "^0.344.0",
+    "process": "^0.11.10",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.7.0"
+    "react-router-dom": "^7.7.0",
+    "twelvelabs-js": "^0.4.12"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",

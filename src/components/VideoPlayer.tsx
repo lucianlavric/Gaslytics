@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, Maximize, VolumeX } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState, useRef, useEffect } from "react";
+import { Play, Pause, Volume2, Maximize, VolumeX } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface Technique {
   id: number;
@@ -14,9 +14,16 @@ interface VideoPlayerProps {
   currentTime: number;
   onTimeUpdate: (time: number) => void;
   onTechniqueSelect?: (timestamp: number, patternId?: number) => void;
+  videoUrl?: string; // Optional video URL, defaults to placeholder if not provided
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTimeUpdate, onTechniqueSelect }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({
+  techniques,
+  currentTime,
+  onTimeUpdate,
+  onTechniqueSelect,
+  videoUrl = "/tempmedia/Hydrolic Press 5 Minute Countdown.mp4", // Default placeholder video
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -27,15 +34,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const getMarkerColor = (severity: string) => {
     switch (severity) {
-      case 'severe': return 'bg-red-500';
-      case 'moderate': return 'bg-amber-500';
-      case 'mild': return 'bg-yellow-500';
-      default: return 'bg-slate-400';
+      case "severe":
+        return "bg-red-500";
+      case "moderate":
+        return "bg-amber-500";
+      case "mild":
+        return "bg-yellow-500";
+      default:
+        return "bg-slate-400";
     }
   };
 
@@ -46,8 +57,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
       const handleLoadedMetadata = () => {
         setDuration(video.duration);
       };
-      video.addEventListener('loadedmetadata', handleLoadedMetadata);
-      return () => video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.addEventListener("loadedmetadata", handleLoadedMetadata);
+      return () =>
+        video.removeEventListener("loadedmetadata", handleLoadedMetadata);
     }
   }, []);
 
@@ -58,8 +70,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
       const handleTimeUpdate = () => {
         onTimeUpdate(video.currentTime);
       };
-      video.addEventListener('timeupdate', handleTimeUpdate);
-      return () => video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.addEventListener("timeupdate", handleTimeUpdate);
+      return () => video.removeEventListener("timeupdate", handleTimeUpdate);
     }
   }, [onTimeUpdate]);
 
@@ -151,21 +163,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
         <video
           ref={videoRef}
           className="w-full h-full object-cover"
-          src="/tempmedia/Hydrolic Press 5 Minute Countdown.mp4"
+          src={videoUrl}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
           onEnded={() => setIsPlaying(false)}
         >
           Your browser does not support the video tag.
         </video>
-        
+
         {/* Video overlay controls */}
         <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
           <button
             onClick={handlePlayPause}
             className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300"
           >
-            {isPlaying ? <Pause className="w-8 h-8 text-white" /> : <Play className="w-8 h-8 text-white ml-1" />}
+            {isPlaying ? (
+              <Pause className="w-8 h-8 text-white" />
+            ) : (
+              <Play className="w-8 h-8 text-white ml-1" />
+            )}
           </button>
         </div>
       </div>
@@ -174,24 +190,32 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
       <div className="p-4">
         {/* Timeline */}
         <div className="relative mb-4">
-          <div 
+          <div
             className="w-full h-2 bg-slate-200 rounded-full cursor-pointer"
             onClick={handleTimelineClick}
           >
             {/* Progress bar */}
-            <motion.div 
+            <motion.div
               className="h-2 bg-sage-500 rounded-full"
               initial={false}
-              animate={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
-              transition={{ duration: 0.1, ease: 'linear' }}
-              style={{ position: 'absolute', left: 0, top: 0 }}
+              animate={{
+                width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
+              }}
+              transition={{ duration: 0.1, ease: "linear" }}
+              style={{ position: "absolute", left: 0, top: 0 }}
             />
             {/* Technique markers */}
             {techniques.map((technique) => (
               <button
                 key={technique.id}
-                className={`absolute top-0 w-3 h-3 rounded-full transform -translate-y-0.5 hover:scale-125 transition-transform ${getMarkerColor(technique.severity)}`}
-                style={{ left: `${duration > 0 ? (technique.timestamp / duration) * 100 : 0}%` }}
+                className={`absolute top-0 w-3 h-3 rounded-full transform -translate-y-0.5 hover:scale-125 transition-transform ${getMarkerColor(
+                  technique.severity
+                )}`}
+                style={{
+                  left: `${
+                    duration > 0 ? (technique.timestamp / duration) * 100 : 0
+                  }%`,
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   jumpToTechnique(technique.timestamp, technique.id);
@@ -200,7 +224,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
               />
             ))}
           </div>
-          
+
           <div className="flex justify-between text-xs text-slate-500 mt-1">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
@@ -214,12 +238,23 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
               onClick={handlePlayPause}
               className="w-10 h-10 bg-sage-500 hover:bg-sage-600 text-white rounded-full flex items-center justify-center transition-colors"
             >
-              {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+              {isPlaying ? (
+                <Pause className="w-5 h-5" />
+              ) : (
+                <Play className="w-5 h-5 ml-0.5" />
+              )}
             </button>
-            
+
             <div className="flex items-center space-x-2">
-              <button onClick={toggleMute} className="text-slate-600 hover:text-slate-800 transition-colors">
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              <button
+                onClick={toggleMute}
+                className="text-slate-600 hover:text-slate-800 transition-colors"
+              >
+                {isMuted ? (
+                  <VolumeX className="w-4 h-4" />
+                ) : (
+                  <Volume2 className="w-4 h-4" />
+                )}
               </button>
               <input
                 type="range"
@@ -233,7 +268,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
             </div>
           </div>
 
-          <button 
+          <button
             onClick={toggleFullscreen}
             className="p-2 text-slate-600 hover:text-slate-800 transition-colors"
           >
@@ -243,16 +278,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
 
         {/* Technique quick access */}
         <div className="mt-4 pt-4 border-t border-slate-200">
-          <h4 className="text-sm font-semibold text-slate-700 mb-2">Quick jump to patterns:</h4>
+          <h4 className="text-sm font-semibold text-slate-700 mb-2">
+            Quick jump to patterns:
+          </h4>
           <div className="flex flex-wrap gap-2">
             {techniques.map((technique) => (
               <button
                 key={technique.id}
-                onClick={() => jumpToTechnique(technique.timestamp, technique.id)}
+                onClick={() =>
+                  jumpToTechnique(technique.timestamp, technique.id)
+                }
                 className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                  technique.severity === 'severe' ? 'bg-red-100 text-red-700 hover:bg-red-200' :
-                  technique.severity === 'moderate' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' :
-                  'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                  technique.severity === "severe"
+                    ? "bg-red-100 text-red-700 hover:bg-red-200"
+                    : technique.severity === "moderate"
+                    ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                    : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
                 }`}
               >
                 {technique.name} ({formatTime(technique.timestamp)})
@@ -261,8 +302,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ techniques, currentTime, onTi
           </div>
         </div>
       </div>
-
-      
     </div>
   );
 };

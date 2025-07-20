@@ -1,0 +1,154 @@
+import { TwelveLabs, Task } from "twelvelabs-js";
+
+const TWELVE_LABS_API_KEY = import.meta.env.VITE_TWELVE_LABS_API_KEY;
+const INDEX_ID = "687be5bd61fa6d2e4d153f7d"; // Using existing index
+
+if (!TWELVE_LABS_API_KEY) {
+  console.error("VITE_TWELVE_LABS_API_KEY is not set in environment variables");
+}
+
+export interface ProcessingResult {
+  success: boolean;
+  videoId?: string;
+  indexId?: string;
+  analysisResult?: any;
+  error?: string;
+}
+
+export interface ProgressCallback {
+  (stage: string, progress: number): void;
+}
+
+export async function processVideoWithTwelveLabs(
+  videoUrl: string,
+  progressCallback?: ProgressCallback
+): Promise<ProcessingResult> {
+  try {
+    console.log("🚀 Starting TwelveLabs video processing...");
+    progressCallback?.("Initializing TwelveLabs client", 5);
+
+    if (!TWELVE_LABS_API_KEY) {
+      throw new Error("TwelveLabs API key is not configured");
+    }
+
+    // Initialize the TwelveLabs client
+    const client = new TwelveLabs({ apiKey: TWELVE_LABS_API_KEY });
+    console.log("✅ TwelveLabs client initialized");
+
+    progressCallback?.("Uploading video to TwelveLabs", 10);
+
+    // Upload the video using the signed URL
+    console.log("\n📹 Uploading video to TwelveLabs...");
+    const task = await client.task.create({
+      indexId: INDEX_ID,
+      url: videoUrl, // Use URL instead of file path
+    });
+    console.log(`⏳ Upload task created: id=${task.id}`);
+
+    progressCallback?.("Processing video", 30);
+
+    // Monitor the video indexing process
+    console.log("\n🔄 Monitoring indexing progress...");
+    await task.waitForDone(50, (task: Task) => {
+      console.log(`  Status: ${task.status}`);
+      // Update progress during indexing
+      if (task.status === "indexing") {
+        progressCallback?.("Indexing video", 50);
+      }
+    });
+
+    if (task.status !== "ready") {
+      const error = `Indexing failed with status ${task.status}`;
+      console.error(`❌ ${error}`);
+      return {
+        success: false,
+        error,
+      };
+    }
+
+    console.log(`✅ Video uploaded successfully! Video ID: ${task.videoId}`);
+    progressCallback?.("Analyzing conversation patterns", 70);
+
+    // Get the analysis prompt - we'll hardcode it for simplicity in frontend
+    const analysisPrompt = `You are an expert analyst of interpersonal manipulation in video and audio. Analyze the supplied video and identify every scene that contains any of the six manipulation tactics listed below. For each qualifying scene, return an entry in a JSON array called "clips" with the exact schema shown under "Expected output format".
+
+1. Target manipulation tactics (all equally important)  
+   • Gaslighting – denying obvious facts, telling someone their memory or perception is wrong, or reframing reality to make the other person doubt themself  
+   • Blame-shifting – redirecting fault or responsibility onto the other party ("You made me do it", "It's your fault I reacted this way")  
+   • Emotional blackmail – leveraging fear, guilt, or obligation to coerce ("If you leave me, I'll…", "After all I've done for you…")  
+   • Self-presentation as victim – portraying oneself as harmed or powerless to gain sympathy or deflect accountability  
+   • Exaggeration / overstatement – inflating events or qualities far beyond the evidence ("You always do this", "Everyone is against me")  
+   • Dominance & control – overt or covert attempts to assert power, including commanding tone, threatening posture, interruptions, looming, or coercive statements  
+
+2. Expected output format  
+{
+  "clips": [
+    {
+      "startTime": "HH:MM:SS.ss",
+      "endTime":   "HH:MM:SS.ss",
+      "transcript": "verbatim or best-effort speech-to-text",
+      "tactic": "One of: Gaslighting | Blame-shifting | Emotional blackmail | Self-presentation as victim | Exaggeration / overstatement | Dominance & control",
+      "justification": "Short explanation citing both verbal and non-verbal evidence.",
+      "confidence": 92,
+      "solution": "Constructive advice or healthy response strategy to address this manipulation."
+    }
+  ]
+}`;
+
+    progressCallback?.("Running manipulation detection analysis", 85);
+
+    // Analyze video for manipulation techniques
+    console.log("\n🔍 Analyzing video for manipulation techniques...");
+    try {
+      const result = await client.analyze(task.videoId!, analysisPrompt);
+      console.log(`📊 Analysis completed successfully`);
+
+      // Parse the analysis result
+      let analysisData;
+      try {
+        analysisData = JSON.parse(result.data);
+      } catch (parseError) {
+        console.warn(
+          "⚠️ Could not parse analysis result as JSON, using raw data"
+        );
+        analysisData = { raw: result.data };
+      }
+
+      progressCallback?.("Analysis complete", 100);
+
+      console.log("🎉 TwelveLabs video processing completed successfully!");
+
+      return {
+        success: true,
+        videoId: task.videoId!,
+        indexId: INDEX_ID,
+        analysisResult: analysisData,
+      };
+    } catch (error) {
+      console.error(`❌ Error analyzing video:`, error);
+      return {
+        success: false,
+        error: `Analysis failed: ${error}`,
+      };
+    }
+  } catch (error) {
+    console.error("❌ Error during TwelveLabs processing:", error);
+
+    let errorMessage = "Unknown error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      if (error.message.includes("401")) {
+        errorMessage = "Authentication error - please check API key";
+      } else if (error.message.includes("400")) {
+        errorMessage = "Bad request - please check request parameters";
+      } else if (error.message.includes("429")) {
+        errorMessage = "Rate limit exceeded - please try again later";
+      }
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}

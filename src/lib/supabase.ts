@@ -1,11 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-console.log('🔧 Supabase config:', { 
-  url: supabaseUrl ? 'Set' : 'Missing', 
-  key: supabaseAnonKey ? 'Set' : 'Missing' 
+console.log("🔧 Supabase config:", {
+  url: supabaseUrl ? "Set" : "Missing",
+  key: supabaseAnonKey ? "Set" : "Missing",
 });
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -13,21 +13,26 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // Test connection
 export const testConnection = async () => {
   try {
-    const { data, error } = await supabase.from('conversations').select('count');
+    const { data, error } = await supabase
+      .from("conversations")
+      .select("count");
     if (error) throw error;
-    console.log('✅ Supabase connection successful');
+    console.log("✅ Supabase connection successful");
     return true;
   } catch (err) {
-    console.error('❌ Supabase connection failed:', err);
+    console.error("❌ Supabase connection failed:", err);
     return false;
   }
 };
 
 // Get current user
 export const getCurrentUser = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error) {
-    console.error('❌ Error getting user:', error);
+    console.error("❌ Error getting user:", error);
     return null;
   }
   return user;
@@ -40,60 +45,67 @@ export const createDemoUser = async () => {
   const randomId = Math.random().toString(36).substring(2, 8);
   const demoEmail = `demo-user-${timestamp}-${randomId}@gaslytics-demo.com`;
   const demoPassword = `demo-password-${timestamp}`;
-  
-  console.log('👤 Creating demo user with email:', demoEmail);
-  
+
+  console.log("👤 Creating demo user with email:", demoEmail);
+
   const { data, error } = await supabase.auth.signUp({
     email: demoEmail,
     password: demoPassword,
     options: {
-      emailRedirectTo: undefined // Skip email confirmation for demo
-    }
+      emailRedirectTo: undefined, // Skip email confirmation for demo
+    },
   });
 
   if (error) {
-    console.error('❌ Demo user creation failed:', error);
+    console.error("❌ Demo user creation failed:", error);
     throw error;
   }
 
-  console.log('✅ Demo user created:', data.user?.id);
+  console.log("✅ Demo user created:", data.user?.id);
   return data.user;
 };
 
 // Upload video file to Supabase Storage with user isolation
 export const uploadVideoFile = async (file: File) => {
-  console.log('📤 Starting file upload to Supabase Storage');
-  
+  console.log("📤 Starting file upload to Supabase Storage");
+
   // Get current user or create demo user
   let user = await getCurrentUser();
   if (!user) {
-    console.log('👤 No user found, creating demo user...');
+    console.log("👤 No user found, creating demo user...");
     user = await createDemoUser();
   }
 
   if (!user) {
-    throw new Error('Unable to authenticate user');
+    throw new Error("Unable to authenticate user");
   }
 
-  console.log('👤 User ID:', user.id);
-  
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+  console.log("👤 User ID:", user.id);
+
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${Date.now()}-${Math.random()
+    .toString(36)
+    .substring(2)}.${fileExt}`;
   // Use user ID as folder name for isolation
   const filePath = `${user.id}/${fileName}`;
 
-  console.log('📁 Upload details:', { fileName, filePath, fileSize: file.size, userId: user.id });
+  console.log("📁 Upload details:", {
+    fileName,
+    filePath,
+    fileSize: file.size,
+    userId: user.id,
+  });
 
   const { data, error } = await supabase.storage
-    .from('conversation-videos')
+    .from("conversation-videos")
     .upload(filePath, file);
 
   if (error) {
-    console.error('❌ Storage upload error:', error);
+    console.error("❌ Storage upload error:", error);
     throw error;
   }
 
-  console.log('✅ File uploaded successfully:', data);
+  console.log("✅ File uploaded successfully:", data);
   return { filePath: data.path, fileName, userId: user.id };
 };
 
@@ -109,12 +121,12 @@ export const createConversation = async (conversationData: {
   conversationContent?: string;
   conversationType?: string;
 }) => {
-  console.log('💾 Creating conversation record with data:', conversationData);
+  console.log("💾 Creating conversation record with data:", conversationData);
 
   // Get current user
   const user = await getCurrentUser();
   if (!user) {
-    throw new Error('User not authenticated');
+    throw new Error("User not authenticated");
   }
 
   const insertData = {
@@ -129,23 +141,23 @@ export const createConversation = async (conversationData: {
     conversation_content: conversationData.conversationContent,
     conversation_type: conversationData.conversationType,
     upload_timestamp: new Date().toISOString(),
-    consent_given: true
+    consent_given: true,
   };
 
-  console.log('📋 Insert payload:', insertData);
+  console.log("📋 Insert payload:", insertData);
 
   const { data, error } = await supabase
-    .from('conversations')
+    .from("conversations")
     .insert([insertData])
     .select()
     .single();
 
   if (error) {
-    console.error('❌ Database insert error:', error);
+    console.error("❌ Database insert error:", error);
     throw error;
   }
 
-  console.log('✅ Conversation created successfully:', data);
+  console.log("✅ Conversation created successfully:", data);
   return data;
 };
 
@@ -153,17 +165,17 @@ export const createConversation = async (conversationData: {
 export const getUserConversations = async () => {
   const user = await getCurrentUser();
   if (!user) {
-    throw new Error('User not authenticated');
+    throw new Error("User not authenticated");
   }
 
   const { data, error } = await supabase
-    .from('conversations')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
+    .from("conversations")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('❌ Error fetching user conversations:', error);
+    console.error("❌ Error fetching user conversations:", error);
     throw error;
   }
 
@@ -174,18 +186,18 @@ export const getUserConversations = async () => {
 export const getConversationById = async (id: string) => {
   const user = await getCurrentUser();
   if (!user) {
-    throw new Error('User not authenticated');
+    throw new Error("User not authenticated");
   }
 
   const { data, error } = await supabase
-    .from('conversations')
-    .select('*')
-    .eq('id', id)
-    .eq('user_id', user.id) // Only get if user owns it
+    .from("conversations")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id) // Only get if user owns it
     .single();
 
   if (error) {
-    console.error('❌ Error fetching conversation:', error);
+    console.error("❌ Error fetching conversation:", error);
     throw error;
   }
 
@@ -196,20 +208,20 @@ export const getConversationById = async (id: string) => {
 export const getFileUrl = async (filePath: string) => {
   const user = await getCurrentUser();
   if (!user) {
-    throw new Error('User not authenticated');
+    throw new Error("User not authenticated");
   }
 
   // Verify the file path starts with user's ID for security
-  if (!filePath.startsWith(user.id + '/')) {
-    throw new Error('Unauthorized file access');
+  if (!filePath.startsWith(user.id + "/")) {
+    throw new Error("Unauthorized file access");
   }
 
   const { data, error } = await supabase.storage
-    .from('conversation-videos')
+    .from("conversation-videos")
     .createSignedUrl(filePath, 3600); // 1 hour expiry
 
   if (error) {
-    console.error('❌ Error creating signed URL:', error);
+    console.error("❌ Error creating signed URL:", error);
     throw error;
   }
 
@@ -218,34 +230,92 @@ export const getFileUrl = async (filePath: string) => {
 
 // Update conversation with analysis results
 export const updateConversationAnalysis = async (
-  conversationId: string, 
+  conversationId: string,
   analysisData: {
     overallManipulationScore?: number;
     twelveLabsIndexId?: string;
     twelveLabsVideoId?: string;
+    clips?: any; // JSONB data for analysis results
   }
 ) => {
   const user = await getCurrentUser();
   if (!user) {
-    throw new Error('User not authenticated');
+    throw new Error("User not authenticated");
+  }
+
+  const updateData: any = {};
+
+  if (analysisData.overallManipulationScore !== undefined) {
+    updateData.overall_manipulation_score =
+      analysisData.overallManipulationScore;
+  }
+  if (analysisData.twelveLabsIndexId !== undefined) {
+    updateData.twelve_labs_index_id = analysisData.twelveLabsIndexId;
+  }
+  if (analysisData.twelveLabsVideoId !== undefined) {
+    updateData.twelve_labs_video_id = analysisData.twelveLabsVideoId;
+  }
+  if (analysisData.clips !== undefined) {
+    updateData.clips = analysisData.clips;
   }
 
   const { data, error } = await supabase
-    .from('conversations')
-    .update({
-      overall_manipulation_score: analysisData.overallManipulationScore,
-      twelve_labs_index_id: analysisData.twelveLabsIndexId,
-      twelve_labs_video_id: analysisData.twelveLabsVideoId,
-    })
-    .eq('id', conversationId)
-    .eq('user_id', user.id) // Only update if user owns it
+    .from("conversations")
+    .update(updateData)
+    .eq("id", conversationId)
+    .eq("user_id", user.id) // Only update if user owns it
     .select()
     .single();
 
   if (error) {
-    console.error('❌ Error updating conversation:', error);
+    console.error("❌ Error updating conversation:", error);
     throw error;
   }
 
   return data;
+};
+
+// Process video with TwelveLabs directly in frontend
+export const processVideoDirectly = async (
+  conversationId: string,
+  filePath: string,
+  progressCallback?: (stage: string, progress: number) => void
+) => {
+  const user = await getCurrentUser();
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+
+  try {
+    // Get signed URL for the video file
+    const signedUrl = await getFileUrl(filePath);
+    console.log("🔗 Got signed URL for video processing");
+
+    // Import TwelveLabs processing function
+    const { processVideoWithTwelveLabs } = await import("./twelveLabs");
+
+    // Process the video directly
+    const result = await processVideoWithTwelveLabs(
+      signedUrl,
+      progressCallback
+    );
+
+    if (result.success) {
+      // Update database with results
+      await updateConversationAnalysis(conversationId, {
+        twelveLabsVideoId: result.videoId,
+        twelveLabsIndexId: result.indexId,
+        clips: result.analysisResult,
+      });
+
+      progressCallback?.("Complete", 100);
+      return { success: true, analysisResult: result.analysisResult };
+    } else {
+      throw new Error(result.error || "Processing failed");
+    }
+  } catch (error) {
+    console.error("❌ Error processing video:", error);
+
+    throw error;
+  }
 };
