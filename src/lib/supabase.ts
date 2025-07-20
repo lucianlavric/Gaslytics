@@ -361,6 +361,8 @@ export const updateConversationAnalysis = async (
     twelveLabsIndexId?: string;
     twelveLabsVideoId?: string;
     clips?: any; // JSONB data for analysis results
+    summary?: string;
+    mediatorPerspective?: string;
   }
 ) => {
   const user = await getCurrentUser();
@@ -391,6 +393,12 @@ export const updateConversationAnalysis = async (
 
     console.log("✅ Analysis data validation passed");
     updateData.clips = validation.validatedData;
+  }
+  if (analysisData.summary !== undefined) {
+    updateData.summary = analysisData.summary;
+  }
+  if (analysisData.mediatorPerspective !== undefined) {
+    updateData.mediator_perspective = analysisData.mediatorPerspective;
   }
 
   const { data, error } = await supabase
@@ -484,6 +492,9 @@ export const processVideoWithBackend = async (
                   twelveLabsVideoId: result.videoId,
                   twelveLabsIndexId: result.indexId,
                   clips: result.analysisResult,
+                  summary: result.analysisResult.summary,
+                  mediatorPerspective:
+                    result.analysisResult.mediatorPerspective,
                 });
 
                 progressCallback?.(

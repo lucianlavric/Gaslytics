@@ -3,6 +3,7 @@ import { promises as fsPromises } from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import { generateInsights } from "./gemini"; // Import the new Gemini service
 
 dotenv.config();
 
@@ -267,109 +268,85 @@ export async function processVideoWithTwelveLabs(
     }
 
     progressCallback?.(
-      "Starting analysis",
-      75,
-      "Running AI analysis for manipulation detection..."
+      "Analyzing content",
+      70,
+      "TwelveLabs is running the analysis prompt..."
     );
 
-    // Analyze video for manipulation techniques
-    console.log("\n🔍 Analyzing video for manipulation techniques...");
-    try {
-      const result = await client.analyze(task.videoId!, promptText);
-      console.log(`📊 Analysis completed successfully`);
-      console.log(`📋 Raw result length: ${result.data.length} characters`);
+    // Run the analysis with the prompt
+    console.log("\n🔍 Running analysis...");
+    const analysis = await client.analyze(task.videoId!, promptText);
+    console.log(`✅ Analysis complete!`);
 
-      progressCallback?.(
-        "Analysis complete",
-        90,
-        "AI analysis finished, parsing results..."
-      );
+    console.log("\n📄 Analysis data received (raw):", analysis.data);
 
-      // Parse the analysis result
-      let analysisData;
+    // Parse analysis data if it's a string
+    let parsedAnalysis: any;
+    if (typeof analysis.data === "string") {
       try {
-        analysisData = JSON.parse(result.data);
-        console.log(`✅ Successfully parsed JSON result`);
-        console.log(
-          `📊 Found ${analysisData.clips?.length || 0} clips in analysis`
-        );
-
-        // Validate the analysis data before returning
-        const validation = validateAnalysisData(analysisData);
-        if (!validation.isValid) {
-          console.error(
-            "❌ Analysis data validation failed:",
-            validation.error
-          );
-          progressCallback?.(
-            "Validation failed",
-            0,
-            `Analysis data validation failed: ${validation.error}`
-          );
-          return {
-            success: false,
-            error: `Analysis data validation failed: ${validation.error}`,
-          };
-        }
-
-        console.log("✅ Analysis data validation passed");
-        analysisData = validation.validatedData;
-
-        progressCallback?.(
-          "Results validated",
-          95,
-          `Found ${analysisData.clips?.length || 0} manipulation instances`
-        );
-      } catch (parseError) {
-        console.warn(
-          "⚠️ Could not parse analysis result as JSON, using raw data"
-        );
-        console.log("📄 Raw result:", result.data.substring(0, 200) + "...");
-        analysisData = { raw: result.data };
-        progressCallback?.(
-          "Results processed",
-          95,
-          "Analysis complete (raw format)"
-        );
+        const cleaned = analysis.data
+          .replace(/```json/g, "")
+          .replace(/```/g, "")
+          .trim();
+        parsedAnalysis = JSON.parse(cleaned);
+        console.log("✅ Parsed analysis JSON successfully");
+      } catch (parseErr) {
+        console.error("❌ Failed to parse analysis JSON:", parseErr);
+        return {
+          success: false,
+          error: "Failed to parse analysis JSON returned by TwelveLabs",
+        };
       }
-
-      progressCallback?.(
-        "Complete",
-        100,
-        "Video analysis completed successfully!"
-      );
-
-      console.log("🎉 TwelveLabs video processing completed successfully!");
-
-      return {
-        success: true,
-        videoId: task.videoId!,
-        indexId: INDEX_ID,
-        analysisResult: analysisData,
-      };
-    } catch (error) {
-      console.error(`❌ Error analyzing video:`, error);
-      progressCallback?.("Analysis failed", 0, `Analysis error: ${error}`);
+    } else if (typeof analysis.data === "object" && analysis.data !== null) {
+      parsedAnalysis = analysis.data;
+    } else {
       return {
         success: false,
-        error: `Analysis failed: ${error}`,
+        error: "Analysis data format not recognized",
       };
     }
-  } catch (error) {
-    console.error("❌ Error during TwelveLabs processing:", error);
 
-    let errorMessage = "Unknown error occurred";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-      if (error.message.includes("401")) {
-        errorMessage = "Authentication error - please check API key";
-      } else if (error.message.includes("400")) {
-        errorMessage = "Bad request - please check request parameters";
-      } else if (error.message.includes("429")) {
-        errorMessage = "Rate limit exceeded - please try again later";
-      }
+    progressCallback?.("Validating results", 95, "Validating analysis data...");
+
+    // Validate the analysis data from TwelveLabs
+    const {
+      isValid,
+      error: validationError,
+      validatedData,
+    } = validateAnalysisData(parsedAnalysis);
+
+    if (!isValid) {
+      console.error("❌ Validation failed:", validationError);
+      return { success: false, error: validationError };
     }
 
+    console.log("✅ Analysis data validated successfully.");
+
+    // Generate insights using Gemini
+    progressCallback?.(
+      "Generating insights",
+      98,
+      "Using Gemini to generate summary..."
+    );
+    const geminiInsights = await generateInsights(validatedData.clips);
+    console.log("✅ Gemini insights generated:", geminiInsights);
+
+    // Combine the results
+    const combinedResult = {
+      ...validatedData,
+      ...geminiInsights,
+    };
+
+    return {
+      success: true,
+      videoId: task.videoId,
+      indexId: INDEX_ID,
+      analysisResult: combinedResult,
+    };
+  } catch (error) {
+    console.error("❌ An unexpected error occurred:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown processing error";
     progressCallback?.("Error", 0, errorMessage);
     return {
       success: false,
