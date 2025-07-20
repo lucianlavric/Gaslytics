@@ -1,86 +1,47 @@
-import React from "react";
-import { Info, ArrowRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Info, ArrowRight, Loader } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useConversation } from "../context/ConversationContext";
+import { getConversationById } from "../lib/supabase";
+import { Conversation } from "../types/analysis";
 import { motion } from "framer-motion";
 
 const ResultsPage = () => {
-  const { conversationData } = useConversation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const urlId = searchParams.get("id");
+  const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock analysis results
-  const analysisResults = {
-    summary:
-      "This conversation shows signs of emotional manipulation through consistent interruption patterns and dismissive language. The speaker frequently redirected blame and used minimizing language when discussing the other person's concerns. However, there were also moments of genuine dialogue and attempts at resolution.",
-    verdict:
-      "While this conversation contained some concerning manipulation tactics, it appears both parties were attempting to communicate. The manipulation detected seems more defensive than intentional. Consider focusing on establishing clearer communication boundaries and using 'I' statements to express feelings.",
-    gaslightScore: 34,
-    overallTone: "Defensive with moments of genuine concern",
-    emotionalTrajectory: [
-      { time: 0, emotion: "calm" },
-      { time: 30, emotion: "tense" },
-      { time: 90, emotion: "heated" },
-      { time: 150, emotion: "defensive" },
-      { time: 210, emotion: "conciliatory" },
-    ],
-    techniques: [
-      {
-        id: 1,
-        name: "Deflection",
-        severity: "moderate",
-        timestamp: 45,
-        quote:
-          "Why are you making this about me? You're the one who started this argument.",
-        definition:
-          "Redirecting blame or attention away from one's own actions or responsibility.",
-        explanation:
-          "The speaker avoided taking responsibility by immediately shifting focus to the other person's behavior.",
-        examples:
-          "Instead of addressing the concern raised, the focus was shifted to who 'started' the conflict.",
-      },
-      {
-        id: 2,
-        name: "Minimizing",
-        severity: "mild",
-        timestamp: 78,
-        quote: "You're overreacting. It's not that big of a deal.",
-        definition:
-          "Dismissing or downplaying someone's feelings or experiences.",
-        explanation:
-          "The speaker invalidated the other person's emotional response rather than acknowledging their feelings.",
-        examples:
-          "Using phrases like 'overreacting' or 'not a big deal' dismisses the other person's valid emotions.",
-      },
-      {
-        id: 3,
-        name: "Gaslighting",
-        severity: "severe",
-        timestamp: 134,
-        quote: "I never said that. You're remembering it wrong again.",
-        definition:
-          "Making someone question their own memory, perception, or judgment.",
-        explanation:
-          "This statement directly challenges the other person's memory and suggests a pattern ('again') of them being wrong.",
-        examples:
-          "Consistently denying previous statements or suggesting the other person has poor memory.",
-      },
-      {
-        id: 4,
-        name: "Emotional Blackmail",
-        severity: "moderate",
-        timestamp: 189,
-        quote: "If you really cared about me, you wouldn't bring this up.",
-        definition:
-          "Using guilt or emotional pressure to control someone's behavior.",
-        explanation:
-          "The speaker questioned the other person's care and love as a way to avoid addressing the issue.",
-        examples:
-          "Making someone feel guilty for having legitimate concerns or needs.",
-      },
-    ],
-  };
+  const conversationId = searchParams.get("id");
+
+  useEffect(() => {
+    if (!conversationId) {
+      setError("No conversation ID provided in the URL.");
+      setLoading(false);
+      return;
+    }
+
+    const fetchConversation = async () => {
+      try {
+        const data = await getConversationById(conversationId);
+        if (data) {
+          setConversation(data);
+        } else {
+          setError(
+            "Conversation not found or you do not have permission to view it."
+          );
+        }
+      } catch (err) {
+        setError("Failed to fetch conversation data.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConversation();
+  }, [conversationId]);
 
   const getScoreColor = (score: number) => {
     if (score >= 70) return "text-red-600";
@@ -97,13 +58,81 @@ const ResultsPage = () => {
   };
 
   const handleSeeDeeperInsights = () => {
-    const id = urlId || conversationData.conversationId;
-    if (!id) {
+    if (!conversationId) {
       console.warn("No conversation ID found when navigating to Deep Insights");
       navigate("/deep-insights");
       return;
     }
-    navigate(`/deep-insights?id=${id}`);
+    navigate(`/deep-insights?id=${conversationId}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader className="w-12 h-12 animate-spin text-purple-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen text-red-500">
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  if (!conversation) {
+    return (
+      <div className="flex justify-center items-center h-screen text-slate-600">
+        <p>Analysis data is not yet available for this conversation.</p>
+      </div>
+    );
+  }
+
+  // Build a unified analysis object regardless of where the data lives in the conversation row
+  const analysis = (() => {
+    if (conversation.analysis) return conversation.analysis as any;
+    return {
+      clips: ((conversation as any).clips?.clips ??
+        (conversation as any).clips ??
+        []) as any[],
+      summary: (conversation as any).summary,
+      mediatorPerspective: (conversation as any).mediator_perspective,
+    } as any;
+  })();
+
+  // If absolutely no analysis data is present, show a friendly message
+  if (
+    (!analysis.clips || analysis.clips.length === 0) &&
+    !analysis.summary &&
+    !analysis.mediatorPerspective
+  ) {
+    return (
+      <div className="flex justify-center items-center h-screen text-slate-600">
+        <p>Analysis data is not yet available for this conversation.</p>
+      </div>
+    );
+  }
+
+  // Calculate manipulation likelihood as average of confidence values
+  const calculateManipulationLikelihood = (): number => {
+    if (!analysis.clips || analysis.clips.length === 0) {
+      return 0;
+    }
+
+    const totalConfidence = analysis.clips.reduce(
+      (sum, clip) => sum + clip.confidence,
+      0
+    );
+    return Math.round(totalConfidence / analysis.clips.length);
+  };
+
+  const manipulationLikelihood = calculateManipulationLikelihood();
+
+  // Use calculated manipulation likelihood
+  const analysisResults = {
+    gaslightScore: manipulationLikelihood,
   };
 
   return (
@@ -130,7 +159,7 @@ const ResultsPage = () => {
             Conversation Summary
           </h2>
           <p className="text-slate-700 leading-relaxed mb-6">
-            {analysisResults.summary}
+            {analysis.summary || "No summary available."}
           </p>
 
           <div className="border-t border-slate-200 pt-4">
@@ -138,7 +167,7 @@ const ResultsPage = () => {
               Mediator's Perspective
             </h3>
             <p className="text-slate-600 text-sm leading-relaxed">
-              {analysisResults.verdict}
+              {analysis.mediatorPerspective || "No perspective available."}
             </p>
           </div>
         </div>
