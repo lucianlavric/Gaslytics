@@ -1,0 +1,40 @@
+{
+  "clips": [
+    {
+      "startTime": "00:00:00.00",
+      "endTime": "00:00:27.00",
+      "transcript": "He's fucking insane! Do you know what the definition of insanity is? No! Do you? Yes, it's the inability to relate to another human being. It's the inability to love. April. April. April! April! The inability... The inability... Oh, oh, Rick.",
+      "tactic": "Exaggeration / overstatement",
+      "justification": "The man uses absolute terms like 'insanity' and 'inability to love' to describe the woman's perception of him, which are extreme and likely exaggerated.",
+      "confidence": 90,
+      "solution": "Respond by acknowledging the intensity of the statement but requesting specific examples to ground the conversation in reality."
+    },
+    {
+      "startTime": "00:00:28.00",
+      "endTime": "00:00:55.00",
+      "transcript": "You really are a wonderful talker. If Black could be made into white by talking, you'd be the man for the job! So now I'm crazy because I don't love you, right? Is that the point? No, wrong! You're not crazy, and you do love me. That's the point, April. But I don't. I hate you. You were just some boy who made me laugh at a party once, and now I loathe the sight of you. In fact, if you...",
+      "tactic": "Gaslighting",
+      "justification": "The man denies the woman's perception of him and tries to convince her that she loves him, despite her clear statements of hate and loathing.",
+      "confidence": 85,
+      "solution": "Maintain a clear and consistent stance on one's feelings and perceptions, and seek support from a trusted third party."
+    },
+    {
+      "startTime": "00:00:56.00",
+      "endTime": "00:01:23.00",
+      "transcript": "If you come any closer, if you touch me or anything, I think I'll scream. Come on, stop this, April. Fuck you, April! Fuck you and all your hateful... What are you gonna do now? Are you gonna hit me? Just show me how much you love me? Don't worry, I can't be bothered. You're not worth the trouble it would take to hit you.",
+      "tactic": "Dominance & control",
+      "justification": "The man uses a commanding tone and threatens to hit the woman, attempting to assert dominance and control over the situation.",
+      "confidence": 95,
+      "solution": "Set clear boundaries and consider seeking help from authorities or a support group."
+    },
+    {
+      "startTime": "00:01:24.00",
+      "endTime": "00:01:49.00",
+      "transcript": "You're not worth the powder it would take to blow you up. You are an empty, empty, hollow shell of a woman. I mean, what the hell are you doing in my house if you hate me so much? Why the hell are you married to me? What the hell are you doing carrying my child? I mean, why didn't you just get rid of it when you had the chance? Because listen to me. Listen to me, I got news for you. I wish to God that you had.",
+      "tactic": "Emotional blackmail",
+      "justification": "The man uses the woman's pregnancy as a point of leverage, implying that she should have terminated the pregnancy due to her feelings towards him.",
+      "confidence": 88,
+      "solution": "Seek emotional support and consider professional counseling to address the coercive and manipulative behavior."
+    }
+  ]
+}

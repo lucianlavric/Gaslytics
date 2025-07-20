@@ -1,5 +1,22 @@
 # User Prompt
 
+I get this error even though all my Supabase info is there.
+
+[Error] Error: supabaseUrl is required.
+SupabaseClient (@supabase_supabase-js.js:7278)
+createClient (@supabase_supabase-js.js:7466)
+Module Code (supabase.ts:8)
+
+# My Actions
+
+- Identified that the environment file was named `env.local` instead of `.env.local` (missing the leading dot)
+- Renamed `env.local` to `.env.local` using `mv env.local .env.local` command
+- This allows Vite to properly load the environment variables (`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`)
+- The issue was that Vite only automatically loads environment files that start with a dot (`.env`, `.env.local`, etc.)
+- Updated `docs/activity.md` with this log entry
+
+# User Prompt
+
 have it instead read the txt file itself rather than just copy and pastrinng in the text
 
 # My Actions
