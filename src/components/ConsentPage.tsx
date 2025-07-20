@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, AlertCircle } from 'lucide-react';
 import { useConversation } from '../context/ConversationContext';
+import { motion } from 'framer-motion';
 
 interface ConsentFormData {
   consent: boolean;
@@ -54,7 +55,13 @@ const ConsentPage = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -24 }}
+      transition={{ duration: 0.4, ease: 'easeInOut' }}
+      className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+    >
       <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg p-8">
         <h1 className="text-3xl font-bold text-slate-800 mb-2">Consent & Context</h1>
         <p className="text-slate-600 mb-8">
@@ -181,7 +188,7 @@ const ConsentPage = () => {
           </div>
         </form>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

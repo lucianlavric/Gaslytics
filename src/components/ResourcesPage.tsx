@@ -1,5 +1,5 @@
-import React from 'react';
 import { ExternalLink, Book, Users, Phone, Heart } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const ResourcesPage = () => {
   const resourceCategories = [
@@ -11,20 +11,20 @@ const ResourcesPage = () => {
         {
           title: 'Assertive Communication Techniques',
           description: 'Learn to express your needs clearly and respectfully',
-          link: '#',
+          link: 'https://www.calm.com/blog/how-to-communicate-your-needs-in-a-relationship',
           type: 'Guide'
         },
         {
           title: 'Healthy Boundaries in Relationships',
           description: 'Understanding and setting emotional boundaries',
-          link: '#',
+          link: 'https://www.haileymagee.com/blog/2022/6/1/emotional-boundaries',
           type: 'Article'
         },
         {
           title: 'Recognizing Manipulation Tactics',
           description: 'A comprehensive guide to identifying unhealthy patterns',
-          link: '#',
-          type: 'PDF'
+          link: 'https://www.16personalities.com/articles/recognizing-signs-of-manipulation-advice-for-vulnerable-personality-types',
+          type: 'Article'
         }
       ]
     },
@@ -48,7 +48,7 @@ const ResourcesPage = () => {
         {
           title: 'Relationship Counseling Resources',
           description: 'Specialized support for couples and families',
-          link: '#',
+          link: '416-595-9618',
           type: 'Directory'
         }
       ]
@@ -86,19 +86,19 @@ const ResourcesPage = () => {
         {
           title: 'Mindfulness and Meditation Apps',
           description: 'Tools for emotional regulation and stress management',
-          link: '#',
+          link: 'https://positivepsychology.com/emotion-regulation/',
           type: 'Apps'
         },
         {
           title: 'Trauma-Informed Self-Care',
           description: 'Gentle practices for emotional healing',
-          link: '#',
+          link: 'https://www.verywellmind.com/how-to-find-emotional-healing-5214462',
           type: 'Guide'
         },
         {
           title: 'Support Groups',
           description: 'Connect with others who understand your experience',
-          link: '#',
+          link: 'https://blog.trevecca.edu/thehill/the-power-of-shared-experiences',
           type: 'Community'
         }
       ]
@@ -126,7 +126,13 @@ const ResourcesPage = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -24 }}
+      transition={{ duration: 0.4, ease: 'easeInOut' }}
+      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+    >
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-slate-800 mb-4">Support Resources</h1>
         <p className="text-xl text-slate-600 max-w-2xl mx-auto">
@@ -222,7 +228,7 @@ const ResourcesPage = () => {
           </a>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
