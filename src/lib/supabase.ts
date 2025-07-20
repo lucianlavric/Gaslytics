@@ -117,9 +117,8 @@ export const createConversation = async (conversationData: {
     throw new Error('User not authenticated');
   }
 
-  // Only include columns that exist in your table
   const insertData = {
-    user_id: user.id,
+    user_id: user.id, // Always use the authenticated user's ID
     file_name: conversationData.fileName,
     file_path: conversationData.filePath,
     relationship_type: conversationData.relationshipType,
@@ -127,9 +126,10 @@ export const createConversation = async (conversationData: {
     conversation_tags: conversationData.conversationTags,
     file_size: conversationData.fileSize,
     file_type: conversationData.fileType,
+    conversation_content: conversationData.conversationContent,
+    conversation_type: conversationData.conversationType,
     upload_timestamp: new Date().toISOString(),
     consent_given: true
-    // Remove conversation_content and conversation_type for now
   };
 
   console.log('📋 Insert payload:', insertData);
