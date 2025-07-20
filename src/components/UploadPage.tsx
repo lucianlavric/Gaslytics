@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Upload, File, CheckCircle, AlertCircle } from 'lucide-react';
 import { useConversation } from '../context/ConversationContext';
 import { uploadVideoFile, createConversation, testConnection, getCurrentUser } from '../lib/supabase';
+import { motion } from 'framer-motion';
 
 const UploadPage = () => {
   const navigate = useNavigate();
@@ -197,7 +198,13 @@ const UploadPage = () => {
   if (uploadState !== 'idle') {
     console.log('🎭 Rendering upload state screen:', uploadState);
     return (
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -24 }}
+        transition={{ duration: 0.4, ease: 'easeInOut' }}
+        className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+      >
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg p-8 text-center">
           <div className="mb-6">
             {getStateIcon()}
@@ -233,14 +240,20 @@ const UploadPage = () => {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   console.log('🏠 Rendering main upload page');
   
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -24 }}
+      transition={{ duration: 0.4, ease: 'easeInOut' }}
+      className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+    >
       <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg p-8">
         <h1 className="text-3xl font-bold text-slate-800 mb-2">Upload Your Conversation</h1>
         <p className="text-slate-600 mb-8">
@@ -333,7 +346,7 @@ const UploadPage = () => {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

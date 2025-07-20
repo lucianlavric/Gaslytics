@@ -2,6 +2,7 @@ import React from 'react';
 import { Info, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useConversation } from '../context/ConversationContext';
+import { motion } from 'framer-motion';
 
 const ResultsPage = () => {
   const { conversationData } = useConversation();
@@ -81,7 +82,13 @@ const ResultsPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -24 }}
+      transition={{ duration: 0.4, ease: 'easeInOut' }}
+      className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+    >
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-800 mb-2">Conversation Analysis</h1>
         <p className="text-slate-600">A gentle, supportive analysis of your conversation patterns</p>
@@ -143,7 +150,7 @@ const ResultsPage = () => {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
