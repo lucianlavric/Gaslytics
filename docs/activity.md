@@ -1,5 +1,13 @@
 # User Prompt
 
+Please implement this quick fix for me
+
+# My Actions
+
+- **🚑 Fixed Railway Build Errors**: Updated `backend/tsconfig.json` to exclude demo files `src/test.ts` and `src/twelveLabs.ts` from TypeScript compilation to resolve build errors on Railway.
+
+# User Prompt
+
 I want to change the manipulation likelihood value by being the average of all the confidence values in the TwelveLabs JSON response.
 
 # My Actions
