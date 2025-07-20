@@ -345,14 +345,6 @@ const DeepInsightsPage = () => {
                         {selectedTechnique?.examples}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-4 text-sm">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-slate-600">Confidence:</span>
-                        <span className="font-semibold text-slate-800">
-                          85%
-                        </span>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </motion.div>
