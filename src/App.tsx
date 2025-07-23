@@ -1,15 +1,21 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import LandingPage from './components/LandingPage';
-import ConsentPage from './components/ConsentPage';
-import UploadPage from './components/UploadPage';
-import ResultsPage from './components/ResultsPage';
-import DeepInsightsPage from './components/DeepInsightsPage';
-import SavedConversations from './components/SavedConversations';
-import ResourcesPage from './components/ResourcesPage';
-import Navigation from './components/Navigation';
-import { ConversationProvider } from './context/ConversationContext';
-import { AnimatePresence } from 'framer-motion';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+import LandingPage from "./components/LandingPage";
+import ConsentPage from "./components/ConsentPage";
+import UploadPage from "./components/UploadPage";
+import ResultsPage from "./components/ResultsPage";
+import DeepInsightsPage from "./components/DeepInsightsPage";
+import SavedConversations from "./components/SavedConversations";
+import ResourcesPage from "./components/ResourcesPage";
+import TwelveLabsTestPage from "./components/TwelveLabsTestPage";
+import Navigation from "./components/Navigation";
+import { ConversationProvider } from "./context/ConversationContext";
+import { AnimatePresence } from "framer-motion";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -23,6 +29,7 @@ function AnimatedRoutes() {
         <Route path="/deep-insights" element={<DeepInsightsPage />} />
         <Route path="/saved" element={<SavedConversations />} />
         <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/test-twelveLabs" element={<TwelveLabsTestPage />} />
       </Routes>
     </AnimatePresence>
   );
