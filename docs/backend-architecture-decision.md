@@ -6,7 +6,7 @@ While direct frontend calls seem simpler initially, they are not feasible due to
 
 ---
 
-## 1. The Core Problem: Browser vs. Node.js Environments
+## The Core Problem: Browser vs. Node.js Environments
 
 The primary issue is that a web browser and a Node.js server are two completely different JavaScript environments. They have different tools, capabilities, and security models.
 
@@ -15,7 +15,7 @@ The primary issue is that a web browser and a Node.js server are two completely 
 
 The `twelvelabs-js` SDK was built specifically for the **Node.js environment**.
 
-## 2. SDK Incompatibility: The `instanceof` Error
+## SDK Incompatibility: The `instanceof` Error
 
 Our testing revealed a critical error when attempting to upload a file from the browser:
 
@@ -41,26 +41,7 @@ When a user selects a file in the browser, JavaScript receives it as a **`File` 
 
 The `instanceof` error happens because the SDK's internal code checks if the provided file is an `instanceof NodeJS.ReadableStream` or `instanceof Buffer`. Since those classes do not exist in the browser, the check fails immediately, and the code crashes before a network request is even attempted.
 
-## 3. Security Risk: Exposed API Keys
-
-A fundamental principle of web security is to **never expose secret API keys on the frontend**.
-
-If we were to initialize the TwelveLabs client in the browser, our `TWELVE_LABS_API_KEY` would be embedded in the JavaScript code sent to every user. A malicious actor could easily find this key by simply viewing the page source or inspecting network traffic, leading to:
-
-- Unauthorized use of our TwelveLabs account.
-- Potentially significant financial cost from API abuse.
-- Compromise of our application's data.
-
-A backend server completely solves this. The API key is stored securely as an environment variable on the server and is never exposed to the public.
-
-## 4. CORS and Long-Running Processes
-
-Even if the SDK were browser-compatible, we would face other major hurdles:
-
-- **CORS (Cross-Origin Resource Sharing):** Browsers block web pages from making API requests to a different domain unless that server explicitly allows it. While simple `GET` requests might work, complex requests like file uploads (`POST` with specific headers) often fail due to preflight checks, leading to the CORS errors observed in early testing.
-- **Long-Running Processes:** Video indexing can take several minutes. Browsers are not designed for such long-running background tasks. A user might close the tab, or the browser might time out the connection, interrupting the process. A backend server can handle these long-running tasks reliably in the background.
-
-## 5. The Solution: A Backend-for-Frontend (BFF) Proxy
+## The Solution: A Backend-for-Frontend (BFF) Proxy
 
 The architecture we've implemented uses the Node.js backend as a secure and compatible **proxy** or intermediary.
 
