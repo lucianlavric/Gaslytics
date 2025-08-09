@@ -6,6 +6,10 @@
     {
       "source": "/api/(.*)",
       "destination": "https://your-railway-app-url.railway.app/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
