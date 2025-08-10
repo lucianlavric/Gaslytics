@@ -1,3 +1,6 @@
+// This code was used to directly call TwelveLabs from the frontend.
+// It is no longer used. Processing now done in backend node server.
+
 import { TwelveLabs, Task } from "twelvelabs-js";
 
 const TWELVE_LABS_API_KEY = import.meta.env.VITE_TWELVE_LABS_API_KEY;
