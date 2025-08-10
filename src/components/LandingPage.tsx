@@ -361,20 +361,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* People Talking Image Section */}
-      <section className="py-8 relative z-20 w-full">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center">
-            <img
-              src="https://via.placeholder.com/600x300/10B981/FFFFFF?text=People+Talking"
-              alt=""
-              className="max-w-full h-auto rounded-lg shadow-lg"
-              style={{ maxHeight: "300px" }}
-            />
-          </div>
-        </div>
-      </section>
-
       {/* Marketing Claims Section */}
       <section className="py-12 relative z-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -901,7 +887,8 @@ const LandingPage = () => {
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a
-                href="#"
+                href="https://x.com/julianlaxman"
+                target="_blank"
                 className="text-slate-400 hover:text-white transition-colors"
               >
                 <span className="sr-only">Twitter</span>
@@ -914,7 +901,8 @@ const LandingPage = () => {
                 </svg>
               </a>
               <a
-                href="#"
+                href="https://www.linkedin.com/in/julian-laxman/"
+                target="_blank"
                 className="text-slate-400 hover:text-white transition-colors"
               >
                 <span className="sr-only">LinkedIn</span>
