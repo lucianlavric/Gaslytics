@@ -82,7 +82,7 @@ const DeepInsightsPage = () => {
               quote: clip.transcript,
               definition: `Analysis: ${clip.justification}`,
               explanation: `Solution: ${clip.solution}`,
-              examples: `${clip.confidence}%`,
+              examples: `Confidence: ${clip.confidence}%`,
             })
           );
 
