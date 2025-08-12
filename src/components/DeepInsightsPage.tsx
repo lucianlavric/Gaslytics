@@ -81,8 +81,8 @@ const DeepInsightsPage = () => {
               timestamp: parseTimeToSeconds(clip.startTime),
               quote: clip.transcript,
               definition: `Analysis: ${clip.justification}`,
-              explanation: clip.solution,
-              examples: `Confidence: ${clip.confidence}%`,
+              explanation: `Solution: ${clip.solution}`,
+              examples: `${clip.confidence}%`,
             })
           );
 
@@ -330,17 +330,11 @@ const DeepInsightsPage = () => {
                   </blockquote>
                   <div className="space-y-4">
                     <div>
-                      <h4 className="font-semibold text-slate-800 mb-2">
-                        Analysis
-                      </h4>
                       <p className="text-sm text-slate-700 leading-relaxed">
                         {selectedTechnique?.explanation}
                       </p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-slate-800 mb-2">
-                        Examples
-                      </h4>
                       <p className="text-sm text-slate-700 leading-relaxed">
                         {selectedTechnique?.examples}
                       </p>
