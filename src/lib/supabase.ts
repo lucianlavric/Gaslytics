@@ -282,7 +282,22 @@ export const validateAnalysisData = (
 
         // Validate time format (HH:MM:SS.ss or HH:MM:SS)
         const timeRegex = /^\d{2}:\d{2}:\d{2}(\.\d{2})?$/;
-        if (!timeRegex.test(clip.startTime) || !timeRegex.test(clip.endTime)) {
+        const shortTimeRegex = /^\d{2}:\d{2}$/;
+
+        const formatTime = (timeStr: string) => {
+          if (shortTimeRegex.test(timeStr)) {
+            return `00:${timeStr}`;
+          }
+          return timeStr;
+        };
+
+        const formattedStartTime = formatTime(clip.startTime);
+        const formattedEndTime = formatTime(clip.endTime);
+
+        if (
+          !timeRegex.test(formattedStartTime) ||
+          !timeRegex.test(formattedEndTime)
+        ) {
           throw new Error(
             `Clip ${
               index + 1
@@ -326,8 +341,8 @@ export const validateAnalysisData = (
         }
 
         return {
-          startTime: clip.startTime,
-          endTime: clip.endTime,
+          startTime: formattedStartTime,
+          endTime: formattedEndTime,
           transcript: clip.transcript,
           tactic: clip.tactic,
           justification: clip.justification,
